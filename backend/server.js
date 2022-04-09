@@ -10,6 +10,10 @@ io.on('connection', (socket)=>{
     current_list.push(socket.id)
     console.log(current_list);
     
+    socket.on('hello', ()=>{
+      let id = generateID();
+      socket.emit('room_id')
+    })
     socket.on('position',({x,y,x2,y2})=>{
   
       io.emit('draw', {x,y,x2,y2})
@@ -30,3 +34,11 @@ io.on('connection', (socket)=>{
 server.listen(80, ()=>{
     console.log('Server is on http://localhost')
 })
+
+function generateID(){
+  let id =  Math.floor((1 + Math.random()) * 0x10000)
+  .toString(16)
+  .substring(1);
+  return id
+
+}
