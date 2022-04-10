@@ -41,6 +41,7 @@ io.on('connection', (socket)=>{
     let user = current_list.indexOf(socket.id);
     current_list.splice(user, 1);
   })
+
     //////////////////////////////////////////////////
 })
 
