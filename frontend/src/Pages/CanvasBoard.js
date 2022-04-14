@@ -1,24 +1,28 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { SocketContext } from "../Utils/Socketprovider";
+import UserDisplay from "../Components/UserDisplay";
 export default function Canvasboard(){
     const canvasRef = useRef()
     const healthBarRef = useRef();
-    const id = useParams();
+    const roomID = useParams();
     const socket = useContext(SocketContext);
     let total_health = 100,x,y,lastX,lastY,interval,total_time_drawn = 0;
     let total_allowed_time = .3 * 1000
-
+    const [lobby, setLobby] = useState(null);
+    const [user, setUser] = useState(null);
     useEffect(()=>{
-        socket.emit('join_room', id);
+
+        socket.emit('join_room', roomID);
+        socket.on('new_user', (lobby_info, currentUser)=>{
+                setLobby(lobby_info);
+                setUser(currentUser);
+                console.log(lobby_info);
+        })
+
         let canvas = canvasRef.current, healthbar = healthBarRef.current;
         let ctx = canvas.getContext('2d'), healthCtx = healthbar.getContext('2d');
-        ctx.fillStyle='white';
-        ctx.fillRect(0,0,canvas.width, canvas.height);
-        healthCtx.fillStyle = 'red';
-        healthCtx.fillRect(0,0,healthbar.width, healthbar.height);
-        healthCtx.fillStyle = '#22BF7B';
-        healthCtx.fillRect(0,0, healthbar.width, healthbar.height);
+        gameSetup(ctx, healthCtx,canvas,healthbar);
         
         const handleHealthBar = (health) =>{
             healthCtx.fillStyle = 'red';
@@ -38,7 +42,7 @@ export default function Canvasboard(){
             interval = setInterval(()=>{
               if(total_time_drawn !== total_allowed_time){
                 socket.emit('position', {x: x, y: y, x2: lastX, y2 :lastY})
-                if(x != lastX  || y != lastY){
+                if(x !== lastX  || y !== lastY){
                     total_time_drawn++;
                     total_health = total_time_drawn/total_allowed_time;
                     window.requestAnimationFrame(handleHealthBar(total_health));
@@ -69,13 +73,26 @@ export default function Canvasboard(){
            lastY = y;
         })
 
-    })
+    },[])
     return(
         <div className="flex">
-        <div className = ' flex items-center  justify-center w-1/3 bg-gradient-to-r from-purple-500 to-pink-600 '>
-            <div className="h-1/2 w-2/3 bg-white rounded-md shadow-2xl"></div>
+        <div className = ' flex items-center  justify-center w-1/3 bg-gradient-to-r from-primary to-secondary '>
+            <div className="h-1/2 w-2/3 bg-white rounded-md shadow-2xl overflow-y-scroll relative">
+                <div>
+                    {lobby != null && lobby.map(user =>{
+                        return <UserDisplay user = {user}> </UserDisplay>
+                    })}
+                </div>
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 p-5">
+                   {lobby && lobby[user].role === 'leader'?  <button className="px-4 py-2 bg-green-500 rounded-md text-white hover:border-4 hover:border-green-700 transition-all duration-150 active:translate-y-1 ">Ready</button>: <></>}
+                    
+                </div>
+                <div className="absolute bottom-2 right-5">
+                <p className="pl-5 text-xl font-sans font-bold">{lobby ? lobby.length: 0 }/6</p>
+                </div>
+            </div>
         </div>
-        <div className="flex flex-col gap-5 justify-center items-center bg-gradient-to-l from-purple-500 to-pink-600 h-screen w-screen">
+        <div className="flex flex-col gap-5 justify-center items-center bg-gradient-to-l from-primary to-secondary h-screen w-screen">
             <canvas className="rounded-md shadow-2xl" width={1000} height = {500} ref = {canvasRef}/>
             <div >
                 <canvas className="rounded-xl shadow-2xl" ref ={healthBarRef} width = {200} height= {40}></canvas>
@@ -83,4 +100,14 @@ export default function Canvasboard(){
         </div>
         </div>
     );
+}
+
+
+function gameSetup(ctx, healthCtx,canvas,healthbar) {
+        ctx.fillStyle='white';
+        ctx.fillRect(0,0,canvas.width, canvas.height);
+        healthCtx.fillStyle = 'red';
+        healthCtx.fillRect(0,0,healthbar.width, healthbar.height);
+        healthCtx.fillStyle = '#22BF7B';
+        healthCtx.fillRect(0,0, healthbar.width, healthbar.height);
 }

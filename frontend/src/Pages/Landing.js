@@ -6,12 +6,21 @@ export default function Landing(){
   let navigate = useNavigate();
   let socket = useContext(SocketContext);
 
-  const [usename, setUsername] = useState('');
+  const [username, setUsername] = useState('');
   const [roomID, setRoomID] = useState('');
   const [popup, setStatus] = useState('opacity-0 -z-10')
+  
+  //Request socket server to generate room
   const RequestRoom = ()=>{
-      socket.emit('request_room');
+      socket.emit('request_room', username);
   }
+
+  //Request Validtion of Room ID from socket server
+  const joinRoom=()=>{
+    socket.emit('validate_room', {id:roomID}, username);
+ }
+
+  //Simply handles UI pop up for "join room"
   const handlePopup = ()=>{
     if(popup==='opacity-0 -z-10'){
       setStatus('opacity-100 z-40')
@@ -20,14 +29,14 @@ export default function Landing(){
       setStatus('opacity-0 -z-10')
     }
   }
-  const joinRoom=()=>{
-     socket.emit('validate_room', ({id:roomID}))
-  }
+
 
   useEffect(()=>{
+    //Listens for response from socket after generating a room
     socket.on('roomID', ({id})=>{
       navigate('/gameroom:' + id);
     })
+    //Listens for response after validating Room ID.
     socket.on('validation_response', (found, id)=>{
       if(found !== -1){
        navigate('/gameroom:' + id.id)
@@ -61,13 +70,13 @@ export default function Landing(){
                    placeholder="Enter Username"
                    onChange={(evt)=> {setUsername(evt.target.value)}}
                    /> 
-                   </div>
+                </div>
                   
                 </div>
                 <div className="justify-self-center flex gap-10">
                       <span onClick={()=>{RequestRoom()}}><Button >Create a room</Button></span>
                       <span onClick={()=>{handlePopup()}}><Button>Join a room</Button></span>
-                   </div>
+                </div>
         </div>
         </>
     );
