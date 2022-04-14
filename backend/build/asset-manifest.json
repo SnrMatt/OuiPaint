@@ -1,6 +1,7 @@
 {
   "files": {
 <<<<<<< HEAD
+<<<<<<< HEAD
     "main.css": "/static/css/main.bd62594f.css",
     "main.js": "/static/js/main.104bb1d3.js",
     "index.html": "/index.html",
@@ -13,13 +14,22 @@
 =======
     "main.css": "/static/css/main.69d1788a.css",
     "main.js": "/static/js/main.58c3a3e7.js",
+=======
+    "main.css": "/static/css/main.c3b99d8d.css",
+    "main.js": "/static/js/main.9d0f97a1.js",
+>>>>>>> a2b6d2413bb602c61989973f9516cdbdcc894afa
     "index.html": "/index.html",
-    "main.69d1788a.css.map": "/static/css/main.69d1788a.css.map",
-    "main.58c3a3e7.js.map": "/static/js/main.58c3a3e7.js.map"
+    "main.c3b99d8d.css.map": "/static/css/main.c3b99d8d.css.map",
+    "main.9d0f97a1.js.map": "/static/js/main.9d0f97a1.js.map"
   },
   "entrypoints": [
+<<<<<<< HEAD
     "static/css/main.69d1788a.css",
     "static/js/main.58c3a3e7.js"
 >>>>>>> 0833cef07b2170cb3dfd9a64534424f008c3fe78
+=======
+    "static/css/main.c3b99d8d.css",
+    "static/js/main.9d0f97a1.js"
+>>>>>>> a2b6d2413bb602c61989973f9516cdbdcc894afa
   ]
 }

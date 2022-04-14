@@ -6,10 +6,8 @@ export default function Canvasboard(){
     const healthBarRef = useRef();
     const id = useParams();
     const socket = useContext(SocketContext);
-    const [total_health, setHealth] = useState(100)
-    let x,y,lastX,lastY;
-    let interval
-    let total_time_drawn = 0
+    let total_health = 100,x,y,lastX,lastY,interval,total_time_drawn = 0;
+    let total_allowed_time = .3 * 1000
 
     useEffect(()=>{
         socket.emit('join_room', id);
@@ -19,8 +17,16 @@ export default function Canvasboard(){
         ctx.fillRect(0,0,canvas.width, canvas.height);
         healthCtx.fillStyle = 'red';
         healthCtx.fillRect(0,0,healthbar.width, healthbar.height);
-        healthCtx.fillStyle = 'yellow';
-        healthCtx.fillRect(0,0, healthbar.width- 13, healthbar.height);
+        healthCtx.fillStyle = '#22BF7B';
+        healthCtx.fillRect(0,0, healthbar.width, healthbar.height);
+        
+        const handleHealthBar = (health) =>{
+            healthCtx.fillStyle = 'red';
+        healthCtx.fillRect(0,0,healthbar.width, healthbar.height);
+        healthCtx.fillStyle = '#22BF7B';
+        healthCtx.fillRect(0,0,  healthbar.width - (healthbar.width * health), healthbar.height);
+        
+        }
         canvas.addEventListener('mousemove', (e)=>{
             x = e.offsetX;
             y = e.offsetY;
@@ -30,11 +36,14 @@ export default function Canvasboard(){
             lastX = x;
             lastY = y;
             interval = setInterval(()=>{
-              console.log(total_time_drawn)
-              if(total_time_drawn !== 1000){
+              if(total_time_drawn !== total_allowed_time){
                 socket.emit('position', {x: x, y: y, x2: lastX, y2 :lastY})
-                  total_time_drawn++;
-                   setHealth(100 -  Math.floor((total_time_drawn/1000)*100))
+                if(x != lastX  || y != lastY){
+                    total_time_drawn++;
+                    total_health = total_time_drawn/total_allowed_time;
+                    window.requestAnimationFrame(handleHealthBar(total_health));
+                }
+                    
               }
               else {
                 clearInterval(interval)
@@ -62,11 +71,16 @@ export default function Canvasboard(){
 
     })
     return(
-        <div className="flex flex-col gap-5 justify-start items-center bg-blue-300 h-screen w-screen">
-            <canvas className="shadow-2xl" width={1000} height = {500} ref = {canvasRef}/>
+        <div className="flex">
+        <div className = ' flex items-center  justify-center w-1/3 bg-gradient-to-r from-purple-500 to-pink-600 '>
+            <div className="h-1/2 w-2/3 bg-white rounded-md shadow-2xl"></div>
+        </div>
+        <div className="flex flex-col gap-5 justify-center items-center bg-gradient-to-l from-purple-500 to-pink-600 h-screen w-screen">
+            <canvas className="rounded-md shadow-2xl" width={1000} height = {500} ref = {canvasRef}/>
             <div >
-                <canvas className="rounded-xl" ref ={healthBarRef} width = {200} height= {40}></canvas>
+                <canvas className="rounded-xl shadow-2xl" ref ={healthBarRef} width = {200} height= {40}></canvas>
             </div>
+        </div>
         </div>
     );
 }
