@@ -2,15 +2,17 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { SocketContext } from "../Utils/Socketprovider";
 import UserDisplay from "../Components/UserDisplay";
+import UserProfile from "../Components/UserProfile";
 export default function Canvasboard(){
     const canvasRef = useRef()
     const healthBarRef = useRef();
     const roomID = useParams();
     const socket = useContext(SocketContext);
     let total_health = 100,x,y,lastX,lastY,interval,total_time_drawn = 0;
-    let total_allowed_time = .3 * 1000
+    let total_allowed_time = .4 * 1000
     const [lobby, setLobby] = useState(null);
     const [user, setUser] = useState(null);
+    const [choice, setChoice] = useState(null);
     useEffect(()=>{
 
         socket.emit('join_room', roomID);
@@ -34,6 +36,9 @@ export default function Canvasboard(){
         canvas.addEventListener('mousemove', (e)=>{
             x = e.offsetX;
             y = e.offsetY;
+        })
+        canvas.addEventListener('mouseleave', ()=>{
+            clearInterval(interval)
         })
 
         canvas.addEventListener('mousedown', ()=>{
@@ -71,34 +76,45 @@ export default function Canvasboard(){
            }
            lastX = x
            lastY = y;
-        })
+        }) 
 
     },[])
     return(
+        <>
+        
         <div className="flex">
-        <div className = ' flex items-center  justify-center w-1/3 bg-gradient-to-r from-primary to-secondary '>
-            <div className="h-1/2 w-2/3 bg-white rounded-md shadow-2xl overflow-y-scroll relative">
-                <div>
-                    {lobby != null && lobby.map(user =>{
-                        return <UserDisplay user = {user}> </UserDisplay>
-                    })}
-                </div>
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 p-5">
-                   {lobby && lobby[user].role === 'leader'?  <button className="px-4 py-2 bg-green-500 rounded-md text-white hover:border-4 hover:border-green-700 transition-all duration-150 active:translate-y-1 ">Ready</button>: <></>}
-                    
-                </div>
-                <div className="absolute bottom-2 right-5">
-                <p className="pl-5 text-xl font-sans font-bold">{lobby ? lobby.length: 0 }/6</p>
-                </div>
-            </div>
+        <div className = ' flex items-center  justify-center w-1/3  bg-gray-700'>
+        <div className="relative w-full h-5/6 bg-gray-700  self-center border-r-2 border-gray-600">
+        <div className="flex absolute bottom-4 h-20 w-full">
+            <input  
+            className = 'block mx-auto h-2/3 w-2/3 pl-5 rounded-md self-center bg-gray-600 focus:outline-none text-gray-500'type='text' placeholder="Enter answers..."
+            onKeyDown={(e)=>{if(e.key === 'Enter') {console.log('Enter pressed');}}}
+            onChange = {(e)=>{setChoice(e.target.value);}}
+            />
         </div>
-        <div className="flex flex-col gap-5 justify-center items-center bg-gradient-to-l from-primary to-secondary h-screen w-screen">
+        </div>
+        </div>
+        <div className="flex flex-col gap-5 justify-center items-center bg-gray-700 h-screen w-screen">
+        <div className=" flex px-10 h-24 w-1000 gap-4  justify-center ">
+            <UserProfile></UserProfile>
+            <UserProfile></UserProfile>
+            <UserProfile></UserProfile>
+            <UserProfile></UserProfile>
+            <UserProfile></UserProfile>
+            <UserProfile></UserProfile>
+         
+            
+            
+        </div>
+        <div className="relative">
             <canvas className="rounded-md shadow-2xl" width={1000} height = {500} ref = {canvasRef}/>
-            <div >
+            <div className="block z-10 top-4 absolute left-1/2 -translate-x-1/2">
                 <canvas className="rounded-xl shadow-2xl" ref ={healthBarRef} width = {200} height= {40}></canvas>
+        </div>
             </div>
         </div>
         </div>
+        </>
     );
 }
 

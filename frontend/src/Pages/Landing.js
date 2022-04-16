@@ -66,7 +66,7 @@ export default function Landing(){
                 <div className="w-screen  rounded-xl p-2">
                    <div > 
                    <input 
-                   className = 'block relative mx-auto border-2 border-purple-500 rounded-3xl text-center p-3 outline-none  text-xl focus:-translate-y-1 focus:shadow-xl focus:shadow-purple-400 transition-all duration-500'type='input' 
+                   className = 'block relative mx-auto border-2 border-purple-500 rounded-3xl text-center p-3 outline-none  text-xl focus:-translate-y-1 focus:shadow-lg focus:shadow-purple-500 transition-all duration-500'type='input' 
                    placeholder="Enter Username"
                    onChange={(evt)=> {setUsername(evt.target.value)}}
                    /> 
