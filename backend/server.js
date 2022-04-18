@@ -18,6 +18,7 @@ io.on('connection', (socket)=>{
         username:username,
         role:'leader',
         points: 0,
+        background: `rgb(${Math.floor( Math.random()*256/2)},${Math.floor(Math.random()*256/2)},${Math.floor(Math.random()*256/2)})`
       }
       lobbies[id] = [set_leader]
       console.log(lobbies) ;
@@ -40,18 +41,20 @@ io.on('connection', (socket)=>{
       list = Array.from(io.sockets.adapter.rooms);
       list = list.filter(room => !room[1].has(room[0]))
       list = list.map(rooms=>rooms[0])
-      console.log(list);
+      console.log(list, id);
       let found  = list.indexOf(id)
-      if(found != -1 && lobbies.length < 6){
+      if(found != -1 || lobbies.length < 6){
         lobbies[id].push({
           username:username,
           role:'',
           points: 0,
+          background: `rgb(${Math.floor( Math.random()*256/2)},${Math.floor(Math.random()*256/2)},${Math.floor(Math.random()*256/2)})`
         })
       }
       else {
         found = -1;
       }
+      console.log(found);
       socket.emit('validation_response', found,{id: id});
     })
     

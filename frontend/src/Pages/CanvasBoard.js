@@ -81,38 +81,47 @@ export default function Canvasboard(){
     },[])
     return(
         <>
-        
         <div className="flex">
-        <div className = ' flex items-center  justify-center w-1/3  bg-gray-700'>
-        <div className="relative w-full h-5/6 bg-gray-700  self-center border-r-2 border-gray-600">
-        <div className="flex absolute bottom-4 h-20 w-full">
-            <input  
-            className = 'block mx-auto h-2/3 w-2/3 pl-5 rounded-md self-center bg-gray-600 focus:outline-none text-gray-500'type='text' placeholder="Enter answers..."
-            onKeyDown={(e)=>{if(e.key === 'Enter') {console.log('Enter pressed');}}}
-            onChange = {(e)=>{setChoice(e.target.value);}}
-            />
-        </div>
-        </div>
-        </div>
-        <div className="flex flex-col gap-5 justify-center items-center bg-gray-700 h-screen w-screen">
-        <div className=" flex px-10 h-24 w-1000 gap-4  justify-center ">
-            <UserProfile></UserProfile>
-            <UserProfile></UserProfile>
-            <UserProfile></UserProfile>
-            <UserProfile></UserProfile>
-            <UserProfile></UserProfile>
-            <UserProfile></UserProfile>
-         
-            
-            
-        </div>
-        <div className="relative">
-            <canvas className="rounded-md shadow-2xl" width={1000} height = {500} ref = {canvasRef}/>
-            <div className="block z-10 top-4 absolute left-1/2 -translate-x-1/2">
-                <canvas className="rounded-xl shadow-2xl" ref ={healthBarRef} width = {200} height= {40}></canvas>
-        </div>
+            <div className="w-1/3 bg-gray-700 max-h-screen flex flex-col ">
+                <div className="h-5/6 flex flex-col justify-center">
+                    <div className="h-5/6 overflow-hidden overflow-y-auto flex flex-col gap-5 border-r-2 border-gray-600">
+                    <div className="relative max-w-xs bg-sky-500 self-end px-5 py-1 text-white mr-2 rounded-xl">
+                        This is just a test
+                        <span className="absolute right-0 -bottom-5 text-gray-400">SnrPapi</span>
+                    </div>
+                    <div className="relative max-w-xs bg-gray-500 self-start px-5 py-1 text-white ml-2 rounded-xl">
+                        This is just a test
+                        <span className="absolute left-0 -bottom-5 text-gray-400">Orkei</span>
+                    </div>
+                    </div>
+
+                </div>
+                
+                
+                <div className="h-1/6 ">
+                    <input
+                    onKeyDown={(e)=>{if(e.key = 'Enter'){console.log('enter');}}}
+                    className="bg-gray-500 p-2 pl-3 rounded-md  w-4/6 block mx-auto mt-10 text-gray-400 focus:outline-none focus:text-white" 
+                    type='text'
+                    placeholder="Enter choice.... "/>
+                </div>
             </div>
-        </div>
+
+
+
+
+            <div className="flex flex-col gap-5 justify-center items-center bg-gray-700 h-screen w-screen">
+                <div className=" flex px-10 h-24 w-1000 gap-4  justify-center  ">
+                    {lobby && lobby.map(user=>{return <UserProfile background={user.background}>{user.username}</UserProfile>})}
+  
+                </div>
+                <div className="relative">
+                    <canvas className="rounded-md shadow-2xl" width={1000} height = {500} ref = {canvasRef}/>
+                <div className="block z-10 top-4 absolute left-1/2 -translate-x-1/2">
+                    <canvas className="rounded-xl shadow-2xl" ref ={healthBarRef} width = {200} height= {40}></canvas>
+                </div>
+                </div>
+            </div>
         </div>
         </>
     );
@@ -127,3 +136,4 @@ function gameSetup(ctx, healthCtx,canvas,healthbar) {
         healthCtx.fillStyle = '#22BF7B';
         healthCtx.fillRect(0,0, healthbar.width, healthbar.height);
 }
+
