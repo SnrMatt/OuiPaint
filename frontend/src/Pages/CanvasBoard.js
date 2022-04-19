@@ -46,7 +46,7 @@ export default function Canvasboard(){
             lastY = y;
             interval = setInterval(()=>{
               if(total_time_drawn !== total_allowed_time){
-                socket.emit('position', {x: x, y: y, x2: lastX, y2 :lastY})
+                socket.emit('position', {x: x, y: y, x2: lastX, y2 :lastY}, roomID)
                 if(x !== lastX  || y !== lastY){
                     total_time_drawn++;
                     total_health = total_time_drawn/total_allowed_time;

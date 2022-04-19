@@ -29,7 +29,6 @@ io.on('connection', (socket)=>{
     socket.on('join_room', ({id})=>{
       id = id.slice(1);
       currentUserIndex =  lobbies[id].length - 1;
-      console.log(id, "Joined room");
       socket.join(id);
       if(lobbies[id]){
         console.log(lobbies[id]);
@@ -54,12 +53,12 @@ io.on('connection', (socket)=>{
       else {
         found = -1;
       }
-      console.log(found);
       socket.emit('validation_response', found,{id: id});
     })
     
-    socket.on('position',({x,y,x2,y2})=>{
-      io.emit('draw', {x,y,x2,y2})
+    socket.on('position',({x,y,x2,y2}, {id})=>{
+      id = id.slice(1);
+      io.to(id).emit('draw', {x,y,x2,y2})
     })
     //////////////////////////////////////////////////
     
