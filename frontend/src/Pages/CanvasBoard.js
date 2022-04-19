@@ -12,6 +12,7 @@ export default function Canvasboard(){
     let total_allowed_time = .4 * 1000
     const [lobby, setLobby] = useState(null);
     const [user, setUser] = useState(null);
+    const [role, setRole] = useState(null);
     const [choice, setChoice] = useState(null);
     useEffect(()=>{
 
@@ -19,64 +20,69 @@ export default function Canvasboard(){
         socket.on('new_user', (lobby_info, currentUser)=>{
                 setLobby(lobby_info);
                 setUser(currentUser);
-                console.log(lobby_info);
         })
+        socket.on('get_role', (user_role)=>{
+            setRole(user_role);
+            console.log('get_user');
+        })
+        
+
+
 
         let canvas = canvasRef.current, healthbar = healthBarRef.current;
         let ctx = canvas.getContext('2d'), healthCtx = healthbar.getContext('2d');
         gameSetup(ctx, healthCtx,canvas,healthbar);
         
-        const handleHealthBar = (health) =>{
-            healthCtx.fillStyle = 'red';
-        healthCtx.fillRect(0,0,healthbar.width, healthbar.height);
-        healthCtx.fillStyle = '#22BF7B';
-        healthCtx.fillRect(0,0,  healthbar.width - (healthbar.width * health), healthbar.height);
-        
-        }
-        canvas.addEventListener('mousemove', (e)=>{
-            x = e.offsetX;
-            y = e.offsetY;
-        })
-        canvas.addEventListener('mouseleave', ()=>{
-            clearInterval(interval)
-        })
+        // const handleHealthBar = (health) =>{
+        //     healthCtx.fillStyle = 'red';
+        // healthCtx.fillRect(0,0,healthbar.width, healthbar.height);
+        // healthCtx.fillStyle = '#22BF7B';
+        // healthCtx.fillRect(0,0,  healthbar.width - (healthbar.width * health), healthbar.height);
+        // }
+        // canvas.addEventListener('mousemove', (e)=>{
+        //     x = e.offsetX;
+        //     y = e.offsetY;
+        // })
+        // canvas.addEventListener('mouseleave', ()=>{
+        //     clearInterval(interval)
+        // })
 
-        canvas.addEventListener('mousedown', ()=>{
-            lastX = x;
-            lastY = y;
-            interval = setInterval(()=>{
-              if(total_time_drawn !== total_allowed_time){
-                socket.emit('position', {x: x, y: y, x2: lastX, y2 :lastY}, roomID)
-                if(x !== lastX  || y !== lastY){
-                    total_time_drawn++;
-                    total_health = total_time_drawn/total_allowed_time;
-                    window.requestAnimationFrame(handleHealthBar(total_health));
-                }
+        // canvas.addEventListener('mousedown', ()=>{
+        //     lastX = x;
+        //     lastY = y;
+        //     interval = setInterval(()=>{
+        //       if(total_time_drawn !== total_allowed_time){
+        //         socket.emit('position', {x: x, y: y, x2: lastX, y2 :lastY}, roomID)
+        //         if(x !== lastX  || y !== lastY){
+        //             total_time_drawn++;
+        //             total_health = total_time_drawn/total_allowed_time;
+        //             window.requestAnimationFrame(handleHealthBar(total_health));
+        //         }
                     
-              }
-              else {
-                clearInterval(interval)
-              }
-            }, 0)
+        //       }
+        //       else {
+        //         clearInterval(interval)
+        //       }
+        //     }, 0)
 
 
-        })
-        canvas.addEventListener('mouseup', ()=>{
-            clearInterval(interval);
-        })
-        socket.on('draw',({x,y,x2,y2})=>{
-            ctx.fillStyle='black';
-           if(lastX !== x || lastY !== y){
-            ctx.beginPath();
-            ctx.moveTo(x2, y2);
-            ctx.lineWidth =5;
-            ctx.lineCap = 'round';
-            ctx.lineTo(x,y)
-            ctx.stroke();
-           }
-           lastX = x
-           lastY = y;
-        }) 
+        // })
+        // canvas.addEventListener('mouseup', ()=>{
+        //     clearInterval(interval);
+        // })
+        // socket.on('draw',({x,y,x2,y2})=>{
+        //     ctx.fillStyle='black';
+        //    if(lastX !== x || lastY !== y){
+        //     ctx.beginPath();
+        //     ctx.moveTo(x2, y2);
+        //     ctx.lineWidth =5;
+        //     ctx.lineCap = 'round';
+        //     ctx.lineTo(x,y)
+        //     ctx.stroke();
+        //    }
+        //    lastX = x
+        //    lastY = y;
+        // }) 
 
     },[])
     return(
