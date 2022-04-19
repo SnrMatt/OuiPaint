@@ -2,15 +2,17 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { SocketContext } from "../Utils/Socketprovider";
 import UserDisplay from "../Components/UserDisplay";
+import UserProfile from "../Components/UserProfile";
 export default function Canvasboard(){
     const canvasRef = useRef()
     const healthBarRef = useRef();
     const roomID = useParams();
     const socket = useContext(SocketContext);
     let total_health = 100,x,y,lastX,lastY,interval,total_time_drawn = 0;
-    let total_allowed_time = .3 * 1000
+    let total_allowed_time = .4 * 1000
     const [lobby, setLobby] = useState(null);
     const [user, setUser] = useState(null);
+    const [choice, setChoice] = useState(null);
     useEffect(()=>{
 
         socket.emit('join_room', roomID);
@@ -34,6 +36,9 @@ export default function Canvasboard(){
         canvas.addEventListener('mousemove', (e)=>{
             x = e.offsetX;
             y = e.offsetY;
+        })
+        canvas.addEventListener('mouseleave', ()=>{
+            clearInterval(interval)
         })
 
         canvas.addEventListener('mousedown', ()=>{
@@ -71,11 +76,13 @@ export default function Canvasboard(){
            }
            lastX = x
            lastY = y;
-        })
+        }) 
 
     },[])
     return(
+        <>
         <div className="flex">
+<<<<<<< HEAD
         <div className = 'h-screen w-1/3 bg-gray-800 block' >
             
             <div className="h-full w-full bg-white relative">
@@ -92,6 +99,50 @@ export default function Canvasboard(){
         </div>
         
         </div>
+=======
+            <div className="w-1/3 bg-gray-700 max-h-screen flex flex-col ">
+                <div className="h-5/6 flex flex-col justify-center">
+                    <div className="h-5/6 overflow-hidden overflow-y-auto flex flex-col gap-5 border-r-2 border-gray-600">
+                    <div className="relative max-w-xs bg-sky-500 self-end px-5 py-1 text-white mr-2 rounded-xl">
+                        This is just a test
+                        <span className="absolute right-0 -bottom-5 text-gray-400">SnrPapi</span>
+                    </div>
+                    <div className="relative max-w-xs bg-gray-500 self-start px-5 py-1 text-white ml-2 rounded-xl">
+                        This is just a test
+                        <span className="absolute left-0 -bottom-5 text-gray-400">Orkei</span>
+                    </div>
+                    </div>
+
+                </div>
+                
+                
+                <div className="h-1/6 ">
+                    <input
+                    onKeyDown={(e)=>{if(e.key = 'Enter'){console.log('enter');}}}
+                    className="bg-gray-500 p-2 pl-3 rounded-md  w-4/6 block mx-auto mt-10 text-gray-400 focus:outline-none focus:text-white" 
+                    type='text'
+                    placeholder="Enter choice.... "/>
+                </div>
+            </div>
+
+
+
+
+            <div className="flex flex-col gap-5 justify-center items-center bg-gray-700 h-screen w-screen">
+                <div className=" flex px-10 h-24 w-1000 gap-4  justify-center  ">
+                    {lobby && lobby.map(user=>{return <UserProfile background={user.background}>{user.username}</UserProfile>})}
+  
+                </div>
+                <div className="relative">
+                    <canvas className="rounded-md shadow-2xl" width={1000} height = {500} ref = {canvasRef}/>
+                <div className="block z-10 top-4 absolute left-1/2 -translate-x-1/2">
+                    <canvas className="rounded-xl shadow-2xl" ref ={healthBarRef} width = {200} height= {40}></canvas>
+                </div>
+                </div>
+            </div>
+        </div>
+        </>
+>>>>>>> e24087a07b4cc892225e164ed289cf3311c4a7f7
     );
 }
 
@@ -104,3 +155,4 @@ function gameSetup(ctx, healthCtx,canvas,healthbar) {
         healthCtx.fillStyle = '#22BF7B';
         healthCtx.fillRect(0,0, healthbar.width, healthbar.height);
 }
+

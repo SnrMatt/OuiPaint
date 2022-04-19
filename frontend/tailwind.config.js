@@ -9,6 +9,13 @@ module.exports = {
       },
       maxWidth:{
         '2/5' : '40%'
+   
+      },
+      maxHeight:{
+        '5/6': '83.333333%'
+      },
+      width:{
+        '1000': '1000px'
       },
       fontFamily: {
         'main': "font-family: 'Merriweather Sans', sans-serif;"

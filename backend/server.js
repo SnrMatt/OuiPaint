@@ -18,13 +18,17 @@ io.on('connection', (socket)=>{
         username:username,
         role:'leader',
         points: 0,
+        background: `rgb(${Math.floor( Math.random()*256/2)},${Math.floor(Math.random()*256/2)},${Math.floor(Math.random()*256/2)})`
       }
-      lobbies[id] = [set_leader]
+      lobbies[id] = {
+        users: [set_leader],
+        sockets: [socket.id],
+        currentUserTurn : 0
+      }
       console.log(lobbies) ;
       socket.emit('roomID', {id:id});
     })
 
-    let list;
     socket.on('join_room', ({id})=>{
       id = id.slice(1);
       currentUserIndex =  lobbies[id].length - 1;
@@ -33,25 +37,27 @@ io.on('connection', (socket)=>{
       if(lobbies[id]){
         console.log(lobbies[id]);
       }
-      io.to(id).emit('new_user', lobbies[id], currentUserIndex);
+      io.to(id).emit('new_user', lobbies[id][users], currentUserIndex);
     })
 
     socket.on('validate_room', ({id}, username)=>{
       list = Array.from(io.sockets.adapter.rooms);
       list = list.filter(room => !room[1].has(room[0]))
       list = list.map(rooms=>rooms[0])
-      console.log(list);
+      console.log(list, id);
       let found  = list.indexOf(id)
-      if(found != -1 && lobbies.length < 6){
-        lobbies[id].push({
+      if(found != -1 || lobbies.length < 6){
+        lobbies[id][users].push({
           username:username,
           role:'',
-          points: 0,
+          points:0,
+          background: `rgb(${Math.floor( Math.random()*256/2)},${Math.floor(Math.random()*256/2)},${Math.floor(Math.random()*256/2)})`,
         })
       }
       else {
         found = -1;
       }
+      console.log(found);
       socket.emit('validation_response', found,{id: id});
     })
     
@@ -59,6 +65,7 @@ io.on('connection', (socket)=>{
       io.emit('draw', {x,y,x2,y2})
     })
     //////////////////////////////////////////////////
+    //#Handle gameplay start session
     
 
 
