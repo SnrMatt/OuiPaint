@@ -6,6 +6,12 @@ module.exports = {
         primary:'#16222A',
         secondary: '#3A6073'
 
+      },
+      maxWidth:{
+        '2/5' : '40%'
+      },
+      fontFamily: {
+        'main': "font-family: 'Merriweather Sans', sans-serif;"
       }
     },
   },
