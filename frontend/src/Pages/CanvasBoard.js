@@ -23,7 +23,6 @@ export default function Canvasboard(){
         })
         socket.on('get_role', (user_role)=>{
             setRole(user_role);
-            console.log('get_user');
         })
         
 
@@ -91,16 +90,12 @@ export default function Canvasboard(){
             <div className="w-1/3 bg-gray-700 max-h-screen flex flex-col ">
                 <div className="h-5/6 flex flex-col justify-center">
                     <div className="h-5/6 overflow-hidden overflow-y-auto flex flex-col gap-5 border-r-2 border-gray-600">
-                    <div className="relative max-w-xs bg-sky-500 self-end px-5 py-1 text-white mr-2 rounded-xl">
-                        This is just a test
-                        <span className="absolute right-0 -bottom-5 text-gray-400">SnrPapi</span>
-                    </div>
+                    
                     <div className="relative max-w-xs bg-gray-500 self-start px-5 py-1 text-white ml-2 rounded-xl">
                         This is just a test
                         <span className="absolute left-0 -bottom-5 text-gray-400">Orkei</span>
                     </div>
                     </div>
-
                 </div>
                 
                 
@@ -118,7 +113,7 @@ export default function Canvasboard(){
 
             <div className="flex flex-col gap-5 justify-center items-center bg-gray-700 h-screen w-screen">
                 <div className=" flex px-10 h-24 w-1000 gap-4  justify-center  ">
-                    {lobby && lobby.map(user=>{return <UserProfile background={user.background}>{user.username}</UserProfile>})}
+                    {lobby && lobby.map(user=>{return <UserProfile role = {user.role} background={user.background}>{user.username}</UserProfile>})}
   
                 </div>
                 <div className="relative">

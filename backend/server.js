@@ -15,12 +15,13 @@ io.on('connection', (socket)=>{
       let set_leader = 
       {
         username:username,
+        role: 'leader',
         points: 0,
         background: `rgb(${Math.floor( Math.random()*256/2)},${Math.floor(Math.random()*256/2)},${Math.floor(Math.random()*256/2)})`
       }
       lobbies[id] = {
         users: [set_leader],
-        sockets: [{id: socket.id, role: 'leader'}],
+        sockets: [socket.id],
         currentUserTurn : 0
       }
    
@@ -39,9 +40,10 @@ io.on('connection', (socket)=>{
         lobbies[id]['users'].push({
           username:username,
           points:0,
+          role:'player',
           background: `rgb(${Math.floor( Math.random()*256/2)},${Math.floor(Math.random()*256/2)},${Math.floor(Math.random()*256/2)})`,
         })
-        lobbies[id]['sockets'].push({id:socket.id, role:'player'})
+        lobbies[id]['sockets'].push(socket.id)
       }
       else {
         found = -1;
@@ -57,11 +59,6 @@ io.on('connection', (socket)=>{
       socket.join(id);
       io.to(id).emit('new_user', lobbies[id].users , currentUserIndex);
       //#Give users roles.
-     
-      let socketRole = lobbies[id]['sockets'].map(obj=>{if(obj.id == socket.id) return obj.role})
-       socketRole = socketRole[0];
-       console.log(socketRole);
-      io.to(socket.id).emit('get_role', socketRole)
     })
     //////////////////////////////////////////////////
     //#Handle gameplay start session
