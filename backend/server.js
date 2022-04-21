@@ -58,7 +58,7 @@ io.on('connection', (socket)=>{
       currentUserIndex =  lobbies[id].length - 1;
       socket.join(id);
       io.to(id).emit('new_user', lobbies[id].users , currentUserIndex);
-      //#Give users roles.
+      
     })
     //////////////////////////////////////////////////
     //#Handle gameplay start session
@@ -74,7 +74,15 @@ io.on('connection', (socket)=>{
     let user = current_list.indexOf(socket.id);
     current_list.splice(user, 1);
   })  
+
+  //#Handling Chat message inside the lobby
+socket.on('send_chat', (username, message, id)=>{
+  id = id.splice(1); 
+    socket.to(id).emit('new_message', username, message)
 })
+
+})
+
 
 
 

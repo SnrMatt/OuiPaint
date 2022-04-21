@@ -3,6 +3,8 @@ import { useParams } from "react-router-dom";
 import { SocketContext } from "../Utils/Socketprovider";
 import UserDisplay from "../Components/UserDisplay";
 import UserProfile from "../Components/UserProfile";
+import Self_Message from "../Components/Messages/self_message";
+import Others_Message from "../Components/Messages/others_message";
 export default function Canvasboard(){
     const canvasRef = useRef()
     const healthBarRef = useRef();
@@ -11,23 +13,26 @@ export default function Canvasboard(){
     let total_health = 100,x,y,lastX,lastY,interval,total_time_drawn = 0;
     let total_allowed_time = .4 * 1000
     const [lobby, setLobby] = useState(null);
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState('');
     const [role, setRole] = useState(null);
     const [choice, setChoice] = useState(null);
+    const [chatMessages, addMessages] = useState([]);
+
+
+    
+
     useEffect(()=>{
+        
 
         socket.emit('join_room', roomID);
         socket.on('new_user', (lobby_info, currentUser)=>{
                 setLobby(lobby_info);
                 setUser(currentUser);
+            console.log(user, 'new user');
         })
         socket.on('get_role', (user_role)=>{
             setRole(user_role);
         })
-        
-
-
-
         let canvas = canvasRef.current, healthbar = healthBarRef.current;
         let ctx = canvas.getContext('2d'), healthCtx = healthbar.getContext('2d');
         gameSetup(ctx, healthCtx,canvas,healthbar);
@@ -83,6 +88,10 @@ export default function Canvasboard(){
         //    lastY = y;
         // }) 
 
+        //#Chat Message Listeners
+        socket.on('new_message', (username, message)=>{
+            addMessages(...chatMessages, <Others_Message username = {username}>{message}</Others_Message>)
+        } )
     },[])
     return(
         <>
@@ -90,21 +99,21 @@ export default function Canvasboard(){
             <div className="w-1/3 bg-gray-700 max-h-screen flex flex-col ">
                 <div className="h-5/6 flex flex-col justify-center">
                     <div className="h-5/6 overflow-hidden overflow-y-auto flex flex-col gap-5 border-r-2 border-gray-600">
-                    
-                    <div className="relative max-w-xs bg-gray-500 self-start px-5 py-1 text-white ml-2 rounded-xl">
-                        This is just a test
-                        <span className="absolute left-0 -bottom-5 text-gray-400">Orkei</span>
-                    </div>
+
+                        {chatMessages}
+
                     </div>
                 </div>
                 
                 
                 <div className="h-1/6 ">
                     <input
-                    onKeyDown={(e)=>{if(e.key = 'Enter'){console.log('enter');}}}
+                    onKeyDown={(e)=>{if(e.key = 'Enter'){
+                        socket.emit('send_chat', user.username, e.target.value, roomID)
+                    }}}
                     className="bg-gray-500 p-2 pl-3 rounded-md  w-4/6 block mx-auto mt-10 text-gray-400 focus:outline-none focus:text-white" 
                     type='text'
-                    placeholder="Enter choice.... "/>
+                    placeholder="Enter text.... "/>
                 </div>
             </div>
 
