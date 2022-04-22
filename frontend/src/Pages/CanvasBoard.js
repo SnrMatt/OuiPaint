@@ -13,7 +13,7 @@ export default function Canvasboard(){
     let total_health = 100,x,y,lastX,lastY,interval,total_time_drawn = 0;
     let total_allowed_time = .4 * 1000
     const [lobby, setLobby] = useState(null);
-    const [user, setUser] = useState('');
+    const [user, setUser] = useState(null);
     const [role, setRole] = useState(null);
     const [choice, setChoice] = useState(null);
     const [chatMessages, addMessages] = useState([]);
@@ -26,9 +26,9 @@ export default function Canvasboard(){
 
         socket.emit('join_room', roomID);
         socket.on('new_user', (lobby_info, currentUser)=>{
+            console.log(lobby_info);
                 setLobby(lobby_info);
                 setUser(currentUser);
-            console.log(user, 'new user');
         })
         socket.on('get_role', (user_role)=>{
             setRole(user_role);
@@ -90,7 +90,8 @@ export default function Canvasboard(){
 
         //#Chat Message Listeners
         socket.on('new_message', (username, message)=>{
-            addMessages(...chatMessages, <Others_Message username = {username}>{message}</Others_Message>)
+            console.log('message recieved');
+            addMessages([...chatMessages, <Others_Message username = {username}>{message}</Others_Message>])
         } )
     },[])
     return(
@@ -108,9 +109,12 @@ export default function Canvasboard(){
                 
                 <div className="h-1/6 ">
                     <input
-                    onKeyDown={(e)=>{if(e.key = 'Enter'){
+                    onKeyUp={(e)=>{
+                        if(e.key === 'Enter'){
                         socket.emit('send_chat', user.username, e.target.value, roomID)
-                    }}}
+                        addMessages([...chatMessages, <Self_Message username = {user.username}>{e.target.value}</Self_Message>])
+                        }
+                }}
                     className="bg-gray-500 p-2 pl-3 rounded-md  w-4/6 block mx-auto mt-10 text-gray-400 focus:outline-none focus:text-white" 
                     type='text'
                     placeholder="Enter text.... "/>
