@@ -11,6 +11,7 @@ export default function Canvasboard(){
     const socket = useContext(SocketContext);
     let total_health = 100,x,y,lastX,lastY,interval,total_time_drawn = 0;
     let total_allowed_time = .4 * 1000
+    let color = ['black', 'red', 'green', 'blue', 'yellow'];
     const [lobby, setLobby] = useState(null);
     const [user, setUser] = useState(null);
     const [role, setRole] = useState(null);
@@ -49,7 +50,7 @@ export default function Canvasboard(){
        let ctx = canvas.getContext('2d');
  
        window.addEventListener('resize', ()=>{
-           canvas.width = window.innerWidth;
+           canvas.width = window.innerWidth - (window.innerWidth  * .25);
            canvas.height = window.innerHeight;
            ctx.fillStyle='white';
            ctx.fillRect(0,0,canvas.width, canvas.height);
@@ -119,9 +120,27 @@ export default function Canvasboard(){
     },[])
     return(
         <>
-            <div className ="bg-red-500 h-screen w-screen">
-                <canvas height ={window.innerHeight} width={window.innerWidth} ref={canvasRef}></canvas>
+            <div className ="bg-red-500 h-screen w-screen relative  ">
+                 {/**Chat Message*/}
+                 <div className = 'h-screen w-1/4 bg-red-500'>
+                    <div className = 'flex'>
+                            {lobby && lobby.map(user=> {return <UserProfile background = {user.background}>{user.username}</UserProfile>})}
+                    </div>
+                 </div>
+         
+                <div className = 'absolute top-0 right-0'>
+                    {/**Drawing Board*/}
+                        <canvas  height ={window.innerHeight} width={window.innerWidth - (window.innerWidth  * .25)} ref={canvasRef}></canvas>
+                    {/**Color UI*/}     
+                        <div className = 'flex gap-10 absolute left-1/2 -translate-x-1/2 top-10'>
+                        {color.map((currentColor) =>{return <div className = 'hover:cursor-pointer z-50 w-14 h-14 border-4  border-gray-700 rounded-full' style ={{backgroundColor: `${currentColor}`}}></div>})}
+                        </div>
+                </div>
+                
+                
+              
 
+                    
             </div>
         </>
     );
