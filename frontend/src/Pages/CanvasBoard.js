@@ -2,26 +2,32 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { SocketContext } from "../Utils/Socketprovider";
 import UserProfile from "../Components/UserProfile";
-import Self_Message from "../Components/Messages/self_message";
-import Others_Message from "../Components/Messages/others_message";
+import SelfMessage from "../Components/Messages/self_message";
+import OthersMessage from "../Components/Messages/others_message";
 export default function Canvasboard(){
     const canvasRef = useRef()
     const healthBarRef = useRef();
     const roomID = useParams();
     const socket = useContext(SocketContext);
-    let total_health = 100,x,y,lastX,lastY,interval,total_time_drawn = 0;
-    let total_allowed_time = .4 * 1000
+    
+    let total_allowed_time = 1 * 1000
     let color = ['black', 'red', 'green', 'blue', 'yellow'];
     const [lobby, setLobby] = useState(null);
     const [user, setUser] = useState(null);
     const [role, setRole] = useState(null);
-    const [choice, setChoice] = useState(null);
     const [chatMessages, addMessages] = useState([]);
 
 
     
 
     useEffect(()=>{
+        let x;
+        let y;
+        let lastX;
+        let lastY;
+        let interval;
+        let total_health = 100;
+        let total_time_drawn = 0;
         function gameSetup(ctx,canvas, healthCtx,healthbar) {
             ctx.fillStyle='white';
             ctx.fillRect(0,0,canvas.width, canvas.height);
@@ -30,17 +36,18 @@ export default function Canvasboard(){
            // healthCtx.fillStyle = '#22BF7B';
            // healthCtx.fillRect(0,0, healthbar.width, healthbar.height);
     }
+ 
     
     
 
         socket.emit('join_room', roomID);
         socket.on('new_user', (lobby_info)=>{
-            console.log(lobby_info);
+            
                 setLobby(lobby_info);
         })
 
         socket.on('get_user', (currentUser)=>{
-            console.log('client got user name');
+           
             setUser(currentUser);
         })
         socket.on('get_role', (user_role)=>{
@@ -50,7 +57,7 @@ export default function Canvasboard(){
        let ctx = canvas.getContext('2d');
  
        window.addEventListener('resize', ()=>{
-           canvas.width = window.innerWidth - (window.innerWidth  * .2);
+           canvas.width = window.innerWidth - (window.innerWidth  * .25);
            canvas.height = window.innerHeight;
            ctx.fillStyle='white';
            ctx.fillRect(0,0,canvas.width, canvas.height);
@@ -68,8 +75,8 @@ export default function Canvasboard(){
         //healthCtx.fillRect(0,0,  healthbar.width - (healthbar.width * health), healthbar.height);
         }
         canvas.addEventListener('mousemove', (e)=>{
-            x = e.offsetX;
-            y = e.offsetY;
+         x = e.offsetX;
+        y = e.offsetY;
         })
         canvas.addEventListener('mouseleave', ()=>{
             clearInterval(interval)
@@ -84,7 +91,7 @@ export default function Canvasboard(){
                 if(x !== lastX  || y !== lastY){
                     total_time_drawn++;
                     total_health = total_time_drawn/total_allowed_time;
-                    window.requestAnimationFrame(handleHealthBar(total_health));
+                   requestAnimationFrame(()=>{handleHealthBar(total_health)});
                 }
                     
               }
@@ -115,25 +122,48 @@ export default function Canvasboard(){
         //#Chat Message Listeners
         socket.on('new_message', (username, message)=>{
             console.log('message recieved');
-            addMessages([...chatMessages, <Others_Message username = {username}>{message}</Others_Message>])
+            addMessages([...chatMessages, <OthersMessage username = {username}>{message}</OthersMessage>])
+           
         } )
     },[])
+
+    function handleChat(e){
+        if(e.key ==='Enter'){
+            let message = e.target.value;
+            console.log(message);
+            socket.emit('send_chat', user.username.toString(), message, roomID);
+            addMessages([...chatMessages, <SelfMessage username = {user.username}>{message}</SelfMessage>])
+            console.log(chatMessages);
+            e.target.value = '';
+        }
+    }
+
     return(
         <>
-            <div className ="bg-red-500 h-screen w-screen relative  ">
+            <div className ="h-screen w-screen relative  ">
                  {/**Chat Message*/}
-                 <div className = 'h-screen w-1/5 bg-red-500'>
-                    <div className = 'flex'>
-                            {lobby && lobby.map(user=> {return <UserProfile background = {user.background}>{user.username}</UserProfile>})}
+                 <div className = ' flex flex-col h-screen w-1/4 bg-gray-600 border-r-2 border-gray-500'>
+                    
+                    <div className = 'flex flex-col h-auto w-full  '>
+                            <div className="flex flex-col gap-1 border-b-2 border-gray-500">
+                           
+                                {lobby && lobby.map(user =>{return <div key={user.username.toString()} className="p-1"> < UserProfile background={user.background}>{user.username}</UserProfile> </div>})}
+                            
+                            </div>
+                    </div>
+                    <div className="h-full w-full flex flex-col relative p-4 gap-5">
+                            {chatMessages && chatMessages.map(message=>{return message})}
+                           <div className="w-full  absolute bottom-0 p-4 flex justify-center"> <input className="w-2/3 h-10 rounded-md bg-gray-500 text-white p-1 focus:outline-none"  onKeyUp={(e)=>handleChat(e)}  type='text'/></div>
+                            
                     </div>
                  </div>
          
                 <div className = 'absolute top-0 right-0'>
                     {/**Drawing Board*/}
-                        <canvas  height ={window.innerHeight} width={window.innerWidth - (window.innerWidth  * .2)} ref={canvasRef}></canvas>
+                        <canvas  height ={window.innerHeight} width={window.innerWidth - (window.innerWidth  * .25)} ref={canvasRef}></canvas>
                     {/**Color UI*/}     
                         <div className = 'flex gap-10 absolute left-1/2 -translate-x-1/2 top-10'>
-                        {color.map((currentColor) =>{return <div className = 'hover:cursor-pointer z-50 w-14 h-14 border-4  border-gray-700 rounded-full' style ={{backgroundColor: `${currentColor}`}}></div>})}
+                        {color.map((currentColor) =>{return <div key ={currentColor} className = 'hover:cursor-pointer hover:border-sky-500 hover:translate-y-2  transition-all z-50 w-14 h-14 border-4  border-gray-700 rounded-full' style ={{backgroundColor: `${currentColor}`}}></div>})}
                         </div>
                 </div>
                 

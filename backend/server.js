@@ -80,6 +80,7 @@ io.on('connection', (socket)=>{
   socket.on('send_chat', (username, message, {id})=>{
     id = id.slice(1); 
     socket.to(id).emit('new_message', username, message)
+    
   })
 
   socket.on("disconnect", ()=>{
