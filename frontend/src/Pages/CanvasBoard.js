@@ -119,12 +119,7 @@ export default function Canvasboard(){
            lastY = y;
         }) 
 
-        //#Chat Message Listeners
-        socket.on('new_message', (username, message)=>{
-            console.log('message recieved');
-            addMessages([...chatMessages, <OthersMessage username = {username}>{message}</OthersMessage>])
-           
-        } )
+
     },[])
 
     function handleChat(e){
@@ -132,11 +127,19 @@ export default function Canvasboard(){
             let message = e.target.value;
             console.log(message);
             socket.emit('send_chat', user.username.toString(), message, roomID);
-            addMessages([...chatMessages, <SelfMessage username = {user.username}>{message}</SelfMessage>])
             console.log(chatMessages);
+            addMessages([...chatMessages, <SelfMessage username = {user.username}>{message}</SelfMessage>])
+         
             e.target.value = '';
         }
     }
+            //#Chat Message Listeners
+            socket.on('new_message', (username, message)=>{
+                console.log('message recieved');
+                console.log(chatMessages);
+                addMessages([...chatMessages, <OthersMessage username = {username}>{message}</OthersMessage>])
+               
+            } )
 
     return(
         <>
