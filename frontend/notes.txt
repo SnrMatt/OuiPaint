@@ -1,2 +1,10 @@
 Current Task:
-    Display current users in the lobby and prettify board
+    Create a step by step logic for each round.
+
+    1.When the round starts display whos turn it is.
+    2.Give the current user a display of the three words that they are allowed.
+    3. Once they choose the word they will have about 1m:20s to complete picture with the limited amount of ink
+    4. Allow the other users to guess if the words is correct.
+    5. Score Template
+        Those who are trying to guess the word
+        -Given the time the user guessed the word, we find at what percent

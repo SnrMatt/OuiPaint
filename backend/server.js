@@ -3,11 +3,18 @@ const app  = express();
 const cors = require('cors')
 const server = require('http').createServer(app);
 const { Server } = require('socket.io');
+const fs = require('fs')
+
 const io = new Server(server,{
   cors:{
     origin:'http://localhost:3000'
   }
 });
+
+const all_words = getData();
+getThreeWords(all_words);
+
+
 
 
 
@@ -29,7 +36,9 @@ io.on('connection', (socket)=>{
       lobbies[id] = {
         users: [set_leader],
         sockets: [socket.id],
-        currentUserTurn : 0
+        currentUserTurn : 0,
+        currentRound: 1,
+        currentLobbyState: false
       }
    
       socket.emit('roomID', {id:id});
@@ -67,14 +76,26 @@ io.on('connection', (socket)=>{
       socket.emit('get_user', lobbies[id]['users'][currentUserIndex])
       io.to(id).emit('new_user', lobbies[id].users );
     })
+
+    socket.on('start_game', ({id})=>{
+      id = id.slice(1);
+      lobbies[id].currentLobbyState = true;
+    io.to(id).emit('response_start_game', lobbies[id].currentLobbyState)
+    })
+    socket.on('check_game_status', ({id})=>{
+      id = id.slice(1);
+      io.to(id).emit('response_start_game', lobbies[id].currentLobbyState);
+    })
     //////////////////////////////////////////////////
     //#Handle gameplay start session
   
 
 //#Handle Drawing
-    socket.on('position',({x,y,x2,y2}, {id})=>{
+    socket.on('position',({x,y,x2,y2}, {id}, color)=>{
+   
       id = id.slice(1);
-      io.to(id).emit('draw', {x,y,x2,y2})
+      io.to(id).emit('draw', {x,y,x2,y2}, color)
+      
     })
 //#Handling Chat message inside the lobby
   socket.on('send_chat', (username, message, {id})=>{
@@ -82,10 +103,40 @@ io.on('connection', (socket)=>{
     socket.to(id).emit('new_message', username, message)
     
   })
+  socket.on('send_color', (color,{id})=>{
+    id = id.slice(1);
+    console.log(id);
+    io.to(id).emit('change_color', color)
+
+  })
+  socket.on('request_clear_board', ({id})=>{
+    id = id.slice(1);
+    io.to(id).emit('clear_board', 100);
+    
+  })
+
+  socket.on('send_health_amount', (total_health, total_time_drawn, {id})=>{
+      id = id.slice(1);
+      let total_allowed_time = .5 * 1000
+      total_time_drawn++;
+      total_health = total_time_drawn/total_allowed_time;
+      io.to(id).emit('new_health_amount', total_health, total_time_drawn)
+  })
 
   socket.on("disconnect", ()=>{
-    let user = current_list.indexOf(socket.id);
-    current_list.splice(user, 1);
+    console.log('user has disconnected')
+    
+  })
+
+  socket.on('disconnecting', ()=>{
+    console.log(socket.id , [...socket.rooms][1]);
+    if([...socket.rooms][1]){ 
+      let roomID = [...socket.rooms][1];
+      let indexOfUser = lobbies[roomID]['sockets'].indexOf(socket.id);
+      lobbies[roomID]['sockets'].splice(indexOfUser,1);
+       lobbies[roomID]['users'].splice(indexOfUser,1);      
+       console.log(lobbies);
+    }
   })
 
   })  
@@ -101,4 +152,18 @@ server.listen(4001, ()=>{
 
 function generateID() {
   return Math.floor((1+Math.random()) * 0x1000).toString(16).substring();
+}
+
+function getData(){
+  let data = fs.readFileSync('./words.txt', 'utf8');
+  data = data.split('\r\n');
+  data = data.map(word => {return word.toLowerCase()});
+  return data;
+}
+function getThreeWords(data){
+  let three_words = []
+  for(var i = 0; i < 3; i++){
+    three_words.push(data[Math.floor(Math.random() * 425)])
+  }
+  console.log(three_words);
 }
