@@ -11,9 +11,11 @@ export default function Landing(){
   const [popup, setStatus] = useState('opacity-0 -z-10')
   
   //Request socket server to generate room
-  const RequestRoom = ()=>{
-      socket.emit('request_room', username);
-  }
+  // const RequestRoom = ()=>{
+  //     socket.emit('request_room', username);
+  // }
+
+  //Display Options
 
   //Request Validtion of Room ID from socket server
   const joinRoom=()=>{
@@ -58,6 +60,13 @@ export default function Landing(){
            </div>
            </div>
         </div>
+
+        <div className="flex fixed w-screen h-screen justify-center items-center z-50" style = {{backgroundColor: 'rgb(0,0,0,.8)'}}>
+              <div className="w-1/2 h-1/2 rounded-3xl bg-white flex justify-center items-center">
+                <div className="border-b-2 border-purple-500"><span>Total Rounds</span> <select></select></div>
+                
+              </div>
+        </div>
         
         <div className = 'w-screen h-screen flex justify-center items-center bg-white flex-col gap-24 '>
         <div className=" leading-normal justify-self-start text-center text-5xl font-extrabold  text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-500 md:text-9xl md:leading-normal  ">
@@ -74,7 +83,7 @@ export default function Landing(){
                   
                 </div>
                 <div className="justify-self-center flex gap-10">
-                      <span onClick={()=>{RequestRoom()}}><Button >Create a room</Button></span>
+                      <span onClick={()=>{}}><Button >Create a room</Button></span>
                       <span onClick={()=>{handlePopup()}}><Button>Join a room</Button></span>
                 </div>
         </div>
