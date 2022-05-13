@@ -4,7 +4,7 @@ import { SocketContext } from "../Utils/Socketprovider";
 import UserProfile from "../Components/UserProfile";
 import SelfMessage from "../Components/Messages/self_message";
 import OthersMessage from "../Components/Messages/others_message";
-import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faChessKing, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 export default function Canvasboard(){
     const canvasRef = useRef()
@@ -20,8 +20,8 @@ export default function Canvasboard(){
     const [chatMessages, addMessages] = useState([]);
     const [startGame, setGameState] = useState();
     const [drawColor, setColor] = useState('black')
-
-    
+    const [displayChoice, setDisplay] = useState(false);
+    const [currentChoices, setChoices] = useState(null);
 
     useEffect(()=>{
         let x;
@@ -39,8 +39,8 @@ export default function Canvasboard(){
            healthCtx.fillStyle = '#22BF7B';
            healthCtx.fillRect(0,0, healthbar.width, healthbar.height);
     }
- 
-    
+
+      
     
 
         socket.emit('join_room', roomID);
@@ -58,6 +58,13 @@ export default function Canvasboard(){
         })
         socket.on('get_role', (user_role)=>{
             setRole(user_role);
+        })
+         /**
+         * Round Listeners
+         */
+        socket.on('create_user_choices',(choices)=>{
+                    setDisplay(true);
+                    setChoices(choices)
         })
        let canvas = canvasRef.current
        let ctx = canvas.getContext('2d');
@@ -92,15 +99,15 @@ export default function Canvasboard(){
             lastX = x;
             lastY = y;
             interval = setInterval(()=>{
+            
               if(total_time_drawn !== total_allowed_time){
                 socket.emit('position', {x: x, y: y, x2: lastX, y2 :lastY}, roomID, drawColor)
                 if(x !== lastX  || y !== lastY){
                     // total_time_drawn++;
                     // total_health = total_time_drawn/total_allowed_time;
                     // requestAnimationFrame(()=>{handleHealthBar(total_health)});
+                    //We send current health 
                     
-                    //We send current health
-                    console.log(total_health);
                     socket.emit('send_health_amount', total_health, total_time_drawn, roomID);
                 }
                     
@@ -108,7 +115,7 @@ export default function Canvasboard(){
               else {
                 clearInterval(interval)
               }
-            }, 0)
+            }, 1)
 
 
         })
@@ -146,7 +153,9 @@ export default function Canvasboard(){
            lastX = x
            lastY = y;
         })
-        
+
+
+       
 
     },[])
 
@@ -173,7 +182,7 @@ export default function Canvasboard(){
                  {/**Chat Message*/}
                  <div className = ' flex flex-col h-screen w-1/4 bg-gray-600 border-r-2 border-gray-500'>
                     
-                    <div className = 'flex flex-col h-auto w-full  '>
+                    <div className = 'flex flex-col h-auto w-full'>
                             <div className="flex flex-col gap-1 border-b-2 border-gray-500">
                            
                                 {lobby && lobby.map(user =>{return <div key={user.username.toString()} className="p-1"> < UserProfile background={user.background}>{user.username}</UserProfile> </div>})}
@@ -187,6 +196,11 @@ export default function Canvasboard(){
                 </div>
                     <div className="w-full  p-4 flex justify-center"> <input className="w-2/3 h-10 rounded-md bg-gray-500 text-white p-1 focus:outline-none"  onKeyUp={(e)=>handleChat(e)}  type='text'/></div>
             </div>
+               {(displayChoice === true) && 
+               <div className="h-full w-3/4 absolute top-0 right-0  z-50" style = {{backgroundColor: 'rgb(0,0,0,.9'}}>
+                   <div className="h-full w-full flex justify-evenly items-center ">{currentChoices && currentChoices.map(el=>{return <button className="bg-white text-4xl px-10 py-3 active:translate-y-0 rounded-full transition-all hover:shadow-xl  hover:-translate-y-3 hover:bg-green-500 hover:text-white">{el}</button>})}</div>
+               </div> }
+                {/**Player pregame messages */}
                  {(user && user.role === 'leader' && startGame === false ) && 
                    <div className="w-3/4 h-full  absolute top-0 right-0 z-50 flex flex-col justify-center items-center gap-5" style={{backgroundColor:'rgb(0,0,0,.9)'}}>
                         <h1 className="text-white text-5xl">Start Game?</h1>
@@ -195,15 +209,12 @@ export default function Canvasboard(){
                     {(user && user.role === 'player' && startGame === false ) && 
                    <div className="w-3/4 h-full  absolute top-0 right-0 z-50 flex flex-col justify-center items-center gap-5" style={{backgroundColor:'rgb(0,0,0,.9)'}}>
                         <h1 className="text-white text-5xl text-center">Waiting for leader to start game...</h1>
-                        
                     </div>}
-         
+                {/**Drawing Board*/}
                 <div className = 'absolute top-0 right-0'>
-                    {/**Drawing Board*/}
                         <canvas  height ={window.innerHeight} width={window.innerWidth - (window.innerWidth  * .25)} ref={canvasRef}></canvas>
                         <canvas className="absolute top-28 left-1/2 -translate-x-1/2 rounded-xl" height = {30} width = {300} ref = {healthBarRef}/>
                     {/**Color UI*/} 
-
                         <div className = 'flex gap-10 absolute left-1/2 -translate-x-1/2 top-10'>
                         {color.map((currentColor) =>{return <div key ={currentColor} onClick = {()=>{socket.emit('send_color', currentColor, roomID)}} className = 'hover:cursor-pointer hover:border-sky-500 hover:translate-y-1  transition-all z-50 w-14 h-14 border-4  border-gray-700 rounded-full' style ={{backgroundColor: `${currentColor}`}}></div>})}
                         <div className="flex items-center hover:cursor-pointer hover:translate-y-1  transition-all" onClick = {()=>{socket.emit('request_clear_board', roomID)}}><FontAwesomeIcon className="h-12 hover: " icon= {faTrash}/></div>
@@ -211,6 +222,9 @@ export default function Canvasboard(){
                     {/**Health Bar */}
                     
                 </div>
+
+
+
                 
                             
                         

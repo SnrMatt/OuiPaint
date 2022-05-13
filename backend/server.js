@@ -3,7 +3,9 @@ const app  = express();
 const cors = require('cors')
 const server = require('http').createServer(app);
 const { Server } = require('socket.io');
-const fs = require('fs')
+const fs = require('fs');
+
+
 
 const io = new Server(server,{
   cors:{
@@ -18,13 +20,15 @@ getThreeWords(all_words);
 
 
 
+
 app.use(cors());
-var current_list = [];
 let lobbies = {};
 io.on('connection', (socket)=>{
-    current_list.push(socket.id)
-    //#Handle Room creation, Joining a room, giving room information to users.
-    socket.on('request_room', (username)=>{
+    
+/**
+ * @description Listeners for creating and joining a room.
+ */
+    socket.on('request_room', (username,roundCount, wordList)=>{
       var id = generateID();
       let set_leader = 
       {
@@ -33,18 +37,23 @@ io.on('connection', (socket)=>{
         points: 0,
         background: `rgb(${Math.floor( Math.random()*256/2)},${Math.floor(Math.random()*256/2)},${Math.floor(Math.random()*256/2)})`
       }
+
       lobbies[id] = {
         users: [set_leader],
         sockets: [socket.id],
         currentUserTurn : 0,
-        currentRound: 1,
-        currentLobbyState: false
+        currentRound: roundCount,
+        currentLobbyState: false,
+        extra_words: wordList,
       }
    
       socket.emit('roomID', {id:id});
     })
 
-   
+    socket.on('check_game_status', ({id})=>{
+      id = id.slice(1);
+      io.to(id).emit('response_start_game', lobbies[id].currentLobbyState);
+    })
 
     socket.on('validate_room', ({id}, username)=>{
       list = Array.from(io.sockets.adapter.rooms);
@@ -76,16 +85,16 @@ io.on('connection', (socket)=>{
       socket.emit('get_user', lobbies[id]['users'][currentUserIndex])
       io.to(id).emit('new_user', lobbies[id].users );
     })
-
+    /**
+     * @
+     */
     socket.on('start_game', ({id})=>{
       id = id.slice(1);
       lobbies[id].currentLobbyState = true;
     io.to(id).emit('response_start_game', lobbies[id].currentLobbyState)
+    StartRoundGameplay(socket,id)
     })
-    socket.on('check_game_status', ({id})=>{
-      id = id.slice(1);
-      io.to(id).emit('response_start_game', lobbies[id].currentLobbyState);
-    })
+
     //////////////////////////////////////////////////
     //#Handle gameplay start session
   
@@ -105,7 +114,7 @@ io.on('connection', (socket)=>{
   })
   socket.on('send_color', (color,{id})=>{
     id = id.slice(1);
-    console.log(id);
+  
     io.to(id).emit('change_color', color)
 
   })
@@ -125,17 +134,18 @@ io.on('connection', (socket)=>{
 
   socket.on("disconnect", ()=>{
     console.log('user has disconnected')
-    
+
   })
 
   socket.on('disconnecting', ()=>{
-    console.log(socket.id , [...socket.rooms][1]);
+   
     if([...socket.rooms][1]){ 
       let roomID = [...socket.rooms][1];
       let indexOfUser = lobbies[roomID]['sockets'].indexOf(socket.id);
       lobbies[roomID]['sockets'].splice(indexOfUser,1);
        lobbies[roomID]['users'].splice(indexOfUser,1);      
-       console.log(lobbies);
+       
+       
     }
   })
 
@@ -163,7 +173,20 @@ function getData(){
 function getThreeWords(data){
   let three_words = []
   for(var i = 0; i < 3; i++){
-    three_words.push(data[Math.floor(Math.random() * 425)])
+    three_words.push(data[Math.floor(Math.random() * data.length)])
   }
-  console.log(three_words);
+  return three_words
+}
+
+function StartRoundGameplay(socket,id){ 
+  let user_choice;
+  let choices = getThreeWords(all_words);
+  console.log(lobbies[id].sockets[lobbies[id].currentUserTurn]);
+  io.to(lobbies[id].sockets[lobbies[id].currentUserTurn]).emit('create_user_choices', choices);
+  let start_time =  Date.now();
+  let timer = setInterval(()=>{
+      console.log(Date.now() - start_time);
+      
+  }, 1000)
+  
 }

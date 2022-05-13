@@ -1,10 +1,4 @@
 Current Task:
-    
-    Before creating a game, Give options for users to change round count or add anywords. 
-    
-    
-    
-    
     Create a step by step logic for each round.
 
     1.When the round starts display whos turn it is.
@@ -21,4 +15,5 @@ Current Task:
         -Based on the average point of every user, we add multipliers of 0.4 for each guess,
         - EX: [.75,.43,.65, .10] = .52,
         - .52 * 1000 = 520 points
+        
         
