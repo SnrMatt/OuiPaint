@@ -185,7 +185,15 @@ function StartRoundGameplay(socket,id){
   io.to(lobbies[id].sockets[lobbies[id].currentUserTurn]).emit('create_user_choices', choices);
   let start_time =  Date.now();
   let timer = setInterval(()=>{
-      console.log(Date.now() - start_time);
+    let time_left = (80 - (Math.floor((Date.now()-start_time)/1000)))
+
+    //Client will make a time request every second. to stay up to date. 
+    socket.on('check_time', ()=>{
+      console.log((time_left));
+    })
+    if(time_left === 0) {
+      clearInterval(timer);
+    }
       
   }, 1000)
   

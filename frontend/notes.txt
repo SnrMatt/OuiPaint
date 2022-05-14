@@ -1,19 +1,11 @@
-Current Task:
-    Create a step by step logic for each round.
+Once the round start we need notify the lobby that their game started. 
 
-    1.When the round starts display whos turn it is.
-    2.Give the current user a display of the three words that they are allowed.
-    3. Once they choose the word they will have about 1m:20s to complete picture with the limited amount of ink
-    4. Allow the other users to guess if the words is correct.
-    5. Score Template
-        Those who are trying to guess the word
-        - Given the time the user guessed the word, we find the percent based on the time they guess.
-        - MAX_POINTS = 1000.
-        - Ex. user guessing in 30s, 80s-30s = 50s, then 50/80 would be .75;
-        -.75 * 1000 = 750 points
-        Those who are drawing
-        -Based on the average point of every user, we add multipliers of 0.4 for each guess,
-        - EX: [.75,.43,.65, .10] = .52,
-        - .52 * 1000 = 520 points
-        
-        
+Because there is till one person choosing the word before the timer starts,
+we need to display that information to other user.
+
+Once the user chooses the words. 
+Update the UI by making it clear that the timer has started and the are lines where the words would be.
+
+
+
+We need to create a listener with the lobby's chat, and check if that user correctly guessed the words.
