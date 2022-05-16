@@ -66,6 +66,9 @@ export default function Canvasboard(){
                     setDisplay(true);
                     setChoices(choices)
         })
+        socket.on('current_time', (time_left)=>{
+            console.log(time_left);
+        })
        let canvas = canvasRef.current
        let ctx = canvas.getContext('2d');
  
@@ -113,7 +116,7 @@ export default function Canvasboard(){
                     
               }
               else {
-                clearInterval(interval)
+                clearInterval(interval) 
               }
             }, 1)
 
@@ -140,8 +143,6 @@ export default function Canvasboard(){
             requestAnimationFrame(()=>{handleHealthBar(total_health)})
         })
         socket.on('draw',({x,y,x2,y2})=>{
-          
-        
            if(lastX !== x || lastY !== y){
             ctx.beginPath();
             ctx.moveTo(x2, y2);
@@ -159,7 +160,7 @@ export default function Canvasboard(){
 
     },[])
 
-    function handleChat(e){
+    const handleChat =(e)=>{
         if(e.key ==='Enter'){
             let message = e.target.value;
             console.log(message);
@@ -168,6 +169,9 @@ export default function Canvasboard(){
             addMessages([...chatMessages, <SelfMessage username = {user.username}>{message}</SelfMessage>])
             e.target.value = '';
         }
+    }
+    const handleWordChoice = (word)=>{
+            socket.emit('user_response', word)
     }
             //#Chat Message Listeners
             socket.on('new_message', (username, message)=>{
@@ -198,7 +202,7 @@ export default function Canvasboard(){
             </div>
                {(displayChoice === true) && 
                <div className="h-full w-3/4 absolute top-0 right-0  z-50" style = {{backgroundColor: 'rgb(0,0,0,.9'}}>
-                   <div className="h-full w-full flex justify-evenly items-center ">{currentChoices && currentChoices.map(el=>{return <button className="bg-white text-4xl px-10 py-3 active:translate-y-0 rounded-full transition-all hover:shadow-xl  hover:-translate-y-3 hover:bg-green-500 hover:text-white">{el}</button>})}</div>
+                   <div className="h-full w-full flex justify-evenly items-center ">{currentChoices && currentChoices.map(el=>{return <button onClick={()=>{handleWordChoice(el)}} className="bg-white text-4xl px-10 py-3 active:translate-y-0 rounded-full transition-all hover:shadow-xl  hover:-translate-y-3 hover:bg-green-500 hover:text-white">{el}</button>})}</div>
                </div> }
                 {/**Player pregame messages */}
                  {(user && user.role === 'leader' && startGame === false ) && 

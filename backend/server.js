@@ -43,6 +43,7 @@ io.on('connection', (socket)=>{
         sockets: [socket.id],
         currentUserTurn : 0,
         currentRound: roundCount,
+        currentTimer: 80,
         currentLobbyState: false,
         extra_words: wordList,
       }
@@ -91,8 +92,8 @@ io.on('connection', (socket)=>{
     socket.on('start_game', ({id})=>{
       id = id.slice(1);
       lobbies[id].currentLobbyState = true;
-    io.to(id).emit('response_start_game', lobbies[id].currentLobbyState)
-    StartRoundGameplay(socket,id)
+      io.to(id).emit('response_start_game', lobbies[id].currentLobbyState)
+      StartRoundGameplay(socket,id)
     })
 
     //////////////////////////////////////////////////
@@ -180,21 +181,23 @@ function getThreeWords(data){
 
 function StartRoundGameplay(socket,id){ 
   let user_choice;
-  let choices = getThreeWords(all_words);
-  console.log(lobbies[id].sockets[lobbies[id].currentUserTurn]);
+  let choices = getThreeWords(all_words);  
   io.to(lobbies[id].sockets[lobbies[id].currentUserTurn]).emit('create_user_choices', choices);
-  let start_time =  Date.now();
-  let timer = setInterval(()=>{
-    let time_left = (80 - (Math.floor((Date.now()-start_time)/1000)))
+  socket.on('user_response', (word)=>{
+    console.log('clicked');
+    //Start Timer
+    let start_time =  Date.now();
+    let timer = setInterval(()=>{
+      lobbies[id].currentTimer = (80 - (Math.floor((Date.now()-start_time)/1000)))
+      io.to(id).emit('current_time', lobbies[id].currentTimer);
 
-    //Client will make a time request every second. to stay up to date. 
-    socket.on('check_time', ()=>{
-      console.log((time_left));
-    })
-    if(time_left === 0) {
-      clearInterval(timer);
-    }
-      
-  }, 1000)
-  
+   
+      if(lobbies[id].currentTimer === 0) {
+        clearInterval(timer);
+      }
+        
+    }, 1000)
+  })
+ 
+
 }
