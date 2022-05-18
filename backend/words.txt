@@ -47,7 +47,8 @@ dictionary
 homerun
 root beer float
 hibernation
-street sweeper
+street 
+sweeper
 spitball
 drinking fountain
 imagination
@@ -98,7 +99,8 @@ Olympics
 Volleyball
 Eiffel Tower
 Peanut
-half cardboard
+half 
+cardboard
 oar
 baby-sitter
 drip
@@ -109,11 +111,14 @@ yardstick
 think
 lace darts
 world
-avocado bleach
+avocado 
+bleach
 shower
 curtain
-extension cord dent
-birthday lap
+extension cord 
+dent
+birthday 
+lap
 sandbox
 bruise
 quicksand
@@ -133,12 +138,17 @@ water buffalo
 pilot
 brand pail
 baguette
-rib mascot
+rib 
+mascot
 fireman
-pole zoo sushi
-fizz ceiling
-fan bald
-banister punk
+pole 
+zoo 
+sushi
+fizz 
+ceiling fan 
+bald
+banister
+punk
 post office
 season
 Internet

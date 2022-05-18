@@ -45,6 +45,7 @@ io.on('connection', (socket)=>{
         currentRound: roundCount,
         currentTimer: 80,
         currentLobbyState: false,
+        currentWord: null,
         extra_words: wordList,
       }
    
@@ -167,7 +168,15 @@ function generateID() {
 
 function getData(){
   let data = fs.readFileSync('./words.txt', 'utf8');
-  data = data.split('\r\n');
+
+  /**
+   * Check if current OS is windows or any other
+   */
+  if(process.platform == 'win32'){
+    data = data.split('\r\n');
+  }
+  else { data = data.split('\n')
+}
   data = data.map(word => {return word.toLowerCase()});
   return data;
 }
@@ -184,15 +193,19 @@ function StartRoundGameplay(socket,id){
   let choices = getThreeWords(all_words);  
   io.to(lobbies[id].sockets[lobbies[id].currentUserTurn]).emit('create_user_choices', choices);
   socket.on('user_response', (word)=>{
-    console.log('clicked');
+    lobbies[id].currentWord  = word; 
+    let hidden_word = lobbies[id].currentWord.split(' ');
+    hidden_word = hidden_word.map(letters => {return letters.length});
+    console.log(hidden_word);
+    io.to(id).emit('get_word', hidden_word);
     //Start Timer
     let start_time =  Date.now();
     let timer = setInterval(()=>{
       lobbies[id].currentTimer = (80 - (Math.floor((Date.now()-start_time)/1000)))
       io.to(id).emit('current_time', lobbies[id].currentTimer);
-
+      
    
-      if(lobbies[id].currentTimer === 0) {
+      if(lobbies[id].currentTimer == 0) {
         clearInterval(timer);
       }
         
