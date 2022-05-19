@@ -189,11 +189,10 @@ function getThreeWords(data){
 }
 
 function StartRoundGameplay(socket,id){ 
-  let user_choice;
   let choices = getThreeWords(all_words);  
   io.to(lobbies[id].sockets[lobbies[id].currentUserTurn]).emit('create_user_choices', choices);
   socket.on('user_response', (word)=>{
-    lobbies[id].currentWord  = word; 
+    lobbies[id].currentWord  = word;
     let hidden_word = lobbies[id].currentWord.split(' ');
     hidden_word = hidden_word.map(letters => {return letters.length});
     console.log(hidden_word);
@@ -201,15 +200,18 @@ function StartRoundGameplay(socket,id){
     //Start Timer
     let start_time =  Date.now();
     let timer = setInterval(()=>{
-      lobbies[id].currentTimer = (80 - (Math.floor((Date.now()-start_time)/1000)))
-      io.to(id).emit('current_time', lobbies[id].currentTimer);
-      
-   
-      if(lobbies[id].currentTimer == 0) {
+      if(lobbies[id].currentTimer <= 0) {
+        lobbies[id].currentTimer = 0;
+        console.log(lobbies[id].currentTimer);
+        io.to(id).emit('current_time', lobbies[id].currentTimer);
         clearInterval(timer);
-      }
         
-    }, 1000)
+      }
+      else {
+      lobbies[id].currentTimer = (80 - ((Date.now()-start_time)/1000))
+      io.to(id).emit('current_time', lobbies[id].currentTimer);
+      }
+    }, 1)
   })
  
 

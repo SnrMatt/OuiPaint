@@ -9,6 +9,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 export default function Canvasboard(){
     const canvasRef = useRef()
     const healthBarRef = useRef();
+    const timerRef = useRef();
     const roomID = useParams();
     const socket = useContext(SocketContext);
     
@@ -18,7 +19,7 @@ export default function Canvasboard(){
     const [user, setUser] = useState(null);
     const [chatMessages, addMessages] = useState([]);
     const [startGame, setGameState] = useState();
-    const [drawColor, setColor] = useState('black')
+    var drawColor = 'black'
     const [displayChoice, setDisplay] = useState(false);
     const [currentChoices, setChoices] = useState(null);
     const [currentTime, setTime] = useState(null);
@@ -36,12 +37,15 @@ export default function Canvasboard(){
         let total_time_drawn = 0;
         let canvas = canvasRef.current
         let ctx = canvas.getContext('2d');
-
-
-
-     let healthbar = healthBarRef.current;
-     let healthCtx = healthbar.getContext('2d');
-     gameSetup(ctx, canvas, healthCtx, healthbar);
+        let healthbar = healthBarRef.current;
+        let healthCtx = healthbar.getContext('2d');
+        let timer = timerRef.current;
+        let timerCtx = timer.getContext('2d');
+ 
+     
+     
+     
+        gameSetup(ctx, canvas, healthCtx, healthbar);
      
         /**
          * Canvas / Windows Listeners
@@ -55,7 +59,7 @@ export default function Canvasboard(){
     })
      canvas.addEventListener('mousemove', (e)=>{
       x = e.offsetX;
-     y = e.offsetY;
+      y = e.offsetY;
      })
      canvas.addEventListener('mouseleave', ()=>{
          clearInterval(interval)
@@ -128,6 +132,7 @@ export default function Canvasboard(){
         })
         socket.on('current_time', (time_left)=>{
             setTime(time_left);
+           requestAnimationFrame(()=>{handleTimer(time_left)})
         })
       
         socket.on('change_color', (color)=>{
@@ -178,6 +183,25 @@ export default function Canvasboard(){
         healthCtx.fillStyle = '#22BF7B';
         healthCtx.fillRect(0,0,  healthbar.width - (healthbar.width * health), healthbar.height);
         }
+    const handleTimer=(current_time)=>{
+        //To make it look good, i need to predit where the next second will place the animation
+        //Once we find the difference
+        timerCtx.clearRect(0,0,timer.width,timer.height)
+                timerCtx.beginPath();
+                timerCtx.arc(timer.width/2, timer.height/2, timer.width /2 - 10, 0, (2*Math.PI))
+                timerCtx.lineWidth = 12;
+                timerCtx.strokeStyle = 'red';
+                timerCtx.lineCap = 'round';
+                timerCtx.stroke();
+
+               
+                timerCtx.beginPath();
+                timerCtx.arc(timer.width/2, timer.height /2, timer.width / 2- 10, 0,  (2 * Math.PI) * ((current_time/80)));
+                timerCtx.lineWidth = 15;
+                timerCtx.strokeStyle = '#5CD676';
+                timerCtx.lineCap = 'round';
+                timerCtx.stroke();
+    }
 
        
 
@@ -219,7 +243,7 @@ export default function Canvasboard(){
                             <div className="flex flex-col gap-1 border-b-2 border-gray-500">
                            
                                 {lobby && lobby.map(user =>{return <div key={user.username.toString()} className="p-1"> < UserProfile background={user.background}>{user.username}</UserProfile> </div>})}
-                            
+
                             </div>
                     </div>
                     <div className="h-full w-full flex flex-col relative p-4 gap-5 overflow-y-auto">
@@ -245,6 +269,11 @@ export default function Canvasboard(){
               
                 <div className = 'absolute top-0 right-0'>
                 <div className="absolute left-1/2 top-40 z-50 -translate-x-1/2 flex gap-4">{currentWord}</div>
+                <div className="absolute right-32 top-10 z-50 text-2xl ">
+                    {/**Timer Canvas */}
+                    <canvas height ={100} width={100}  ref ={timerRef}></canvas>
+                    <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">{Math.floor(currentTime)}</span>
+                </div>
                         <canvas  height ={window.innerHeight} width={window.innerWidth - (window.innerWidth  * .25)} ref={canvasRef}></canvas>
                                  {/**Health Bar */}
                         <canvas className="absolute top-28 left-1/2 -translate-x-1/2 rounded-xl" height = {30} width = {300} ref = {healthBarRef}/>
@@ -253,8 +282,6 @@ export default function Canvasboard(){
                         {color.map((currentColor) =>{return <div key ={currentColor} onClick = {()=>{socket.emit('send_color', currentColor, roomID)}} className = 'hover:cursor-pointer hover:border-sky-500 hover:translate-y-1  transition-all z-50 w-14 h-14 border-4  border-gray-700 rounded-full' style ={{backgroundColor: `${currentColor}`}}></div>})}
                         <div className="flex items-center hover:cursor-pointer hover:translate-y-1  transition-all" onClick = {()=>{socket.emit('request_clear_board', roomID)}}><FontAwesomeIcon className="h-12 hover: " icon= {faTrash}/></div>
                 </div>
-           
-                    
                 </div>
             </div>
         </>
