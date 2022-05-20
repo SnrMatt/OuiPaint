@@ -196,7 +196,7 @@ export default function Canvasboard(){
 
                
                 timerCtx.beginPath();
-                timerCtx.arc(timer.width/2, timer.height /2, timer.width / 2- 10, 0,  (2 * Math.PI) * ((current_time/80)));
+                timerCtx.arc(timer.width/2, timer.height /2, timer.width / 2- 10, 0,  (2 * Math.PI) * ((current_time/10)));
                 timerCtx.lineWidth = 15;
                 timerCtx.strokeStyle = '#5CD676';
                 timerCtx.lineCap = 'round';

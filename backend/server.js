@@ -111,6 +111,8 @@ io.on('connection', (socket)=>{
 //#Handling Chat message inside the lobby
   socket.on('send_chat', (username, message, {id})=>{
     id = id.slice(1); 
+    //Check if the message is exactly the lobbies current word;
+    check_if_matches(message, id)
     socket.to(id).emit('new_message', username, message)
     
   })
@@ -208,11 +210,16 @@ function StartRoundGameplay(socket,id){
         
       }
       else {
-      lobbies[id].currentTimer = (80 - ((Date.now()-start_time)/1000))
+      lobbies[id].currentTimer = (10 - ((Date.now()-start_time)/1000))
       io.to(id).emit('current_time', lobbies[id].currentTimer);
       }
     }, 1)
   })
  
 
+}
+function check_if_matches(chat,id){
+if(chat == lobbies[id].currentWord && lobbies[id].currentTimer != 0){
+  console.log('Correct!');
+}
 }
