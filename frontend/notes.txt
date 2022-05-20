@@ -1,11 +1,3 @@
-Once the round start we need notify the lobby that their game started. 
-
-Because there is till one person choosing the word before the timer starts,
-we need to display that information to other user.
-
-Once the user chooses the words. 
-Update the UI by making it clear that the timer has started and the are lines where the words would be.
-
-
-
-We need to create a listener with the lobby's chat, and check if that user correctly guessed the words.
+NOT GOOD: 
+    The organization of the lobbies current turn isnt ideal, due to problems when user leaves or refresh the page;
+    To fix, Implement lobby cleanup and make sure if the page refresh they join under same by using localstorage.

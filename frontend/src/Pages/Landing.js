@@ -66,11 +66,13 @@ export default function Landing(){
   useEffect(()=>{
     //Listens for response from socket after generating a room
     socket.on('roomID', ({id})=>{
+      localStorage.setItem(username);
       navigate('/gameroom:' + id);
     })
     //Listens for response after validating Room ID.
     socket.on('validation_response', (found, id)=>{
       if(found !== -1){
+        localStorage.setItem(username);
        navigate('/gameroom:' + id.id)
       }
     })

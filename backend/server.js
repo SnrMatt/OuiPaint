@@ -112,7 +112,7 @@ io.on('connection', (socket)=>{
   socket.on('send_chat', (username, message, {id})=>{
     id = id.slice(1); 
     //Check if the message is exactly the lobbies current word;
-    check_if_matches(message, id)
+    check_if_matches(message, id,socket)
     socket.to(id).emit('new_message', username, message)
     
   })
@@ -218,8 +218,9 @@ function StartRoundGameplay(socket,id){
  
 
 }
-function check_if_matches(chat,id){
+function check_if_matches(chat,id,socket){
 if(chat == lobbies[id].currentWord && lobbies[id].currentTimer != 0){
   console.log('Correct!');
+  console.log(socket.id);
 }
 }
