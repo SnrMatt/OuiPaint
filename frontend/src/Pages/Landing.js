@@ -14,6 +14,7 @@ export default function Landing(){
   const [popup2, setStatus2] = useState('opacity-0 -z-10')
   const [currentRoundCount, setRoundCount] = useState(1);
   const [wordList, setList] = useState(' ');
+  const [lobbyStatus, setLobbyStatus]= useState(null);
   //Request socket server to generate room
   // const RequestRoom = ()=>{
   //     socket.emit('request_room', username);
@@ -29,10 +30,10 @@ export default function Landing(){
   //Simply handles UI pop up for "join room"
   const handlePopup = ()=>{
     if(popup==='opacity-0 -z-10'){
-      setStatus('opacity-100 z-40')
+      setStatus('opacity-100 z-40');
     }
     else{
-      setStatus('opacity-0 -z-10')
+      setStatus('opacity-0 -z-10');
     }
   }
   const handlePopup2 = ()=>{
@@ -66,13 +67,12 @@ export default function Landing(){
   useEffect(()=>{
     //Listens for response from socket after generating a room
     socket.on('roomID', ({id})=>{
-      localStorage.setItem(username);
       navigate('/gameroom:' + id);
     })
     //Listens for response after validating Room ID.
     socket.on('validation_response', (found, id)=>{
       if(found !== -1){
-        localStorage.setItem(username);
+       
        navigate('/gameroom:' + id.id)
       }
     })

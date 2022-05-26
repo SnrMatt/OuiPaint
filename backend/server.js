@@ -56,6 +56,13 @@ io.on('connection', (socket)=>{
       id = id.slice(1);
       io.to(id).emit('response_start_game', lobbies[id].currentLobbyState);
     })
+    socket.on('check_lobby_status', ({id})=>{
+      id = id.slice(1);
+      if(lobbies[id]){
+        socket.emit('response_lobby_status', true);
+      }
+      else {socket.emit('response_lobby_status', false);}
+    })
 
     socket.on('validate_room', ({id}, username)=>{
       list = Array.from(io.sockets.adapter.rooms);
@@ -82,10 +89,15 @@ io.on('connection', (socket)=>{
 
     socket.on('join_room', ({id})=>{
       id = id.slice(1);
+      if(lobbies[id]){
       let currentUserIndex =  lobbies[id]['users'].length - 1;
       socket.join(id);
       socket.emit('get_user', lobbies[id]['users'][currentUserIndex])
       io.to(id).emit('new_user', lobbies[id].users );
+      }
+      else { 
+        socket.emit('leave_room')
+      }
     })
     /**
      * @
@@ -142,14 +154,32 @@ io.on('connection', (socket)=>{
   })
 
   socket.on('disconnecting', ()=>{
-   
+  
     if([...socket.rooms][1]){ 
       let roomID = [...socket.rooms][1];
       let indexOfUser = lobbies[roomID]['sockets'].indexOf(socket.id);
       lobbies[roomID]['sockets'].splice(indexOfUser,1);
        lobbies[roomID]['users'].splice(indexOfUser,1);      
-       
-       
+       if(lobbies[roomID]['users'].length == 0){
+        console.log('Room is empty! Removing lobby.');
+        delete lobbies[roomID];
+        console.log(lobbies);
+      }
+    }
+ 
+  })
+  socket.on('leave_lobby', ()=>{
+    console.log('test');
+    if([...socket.rooms][1]){ 
+      let roomID = [...socket.rooms][1];
+      let indexOfUser = lobbies[roomID]['sockets'].indexOf(socket.id);
+      lobbies[roomID]['sockets'].splice(indexOfUser,1);
+       lobbies[roomID]['users'].splice(indexOfUser,1);      
+       if(lobbies[roomID]['users'].length == 0){
+        console.log('Room is empty! Removing lobby.');
+        delete lobbies[roomID];
+        console.log(lobbies);
+      }
     }
   })
 
@@ -202,16 +232,21 @@ function StartRoundGameplay(socket,id){
     //Start Timer
     let start_time =  Date.now();
     let timer = setInterval(()=>{
-      if(lobbies[id].currentTimer <= 0) {
-        lobbies[id].currentTimer = 0;
-        console.log(lobbies[id].currentTimer);
+      if(lobbies[id]){
+        if(lobbies[id].currentTimer <= 0) {
+          lobbies[id].currentTimer = 0;
+          console.log(lobbies[id].currentTimer);
+          io.to(id).emit('current_time', lobbies[id].currentTimer);
+          clearInterval(timer);
+          
+        }
+        else {
+        lobbies[id].currentTimer = (10 - ((Date.now()-start_time)/1000))
         io.to(id).emit('current_time', lobbies[id].currentTimer);
-        clearInterval(timer);
-        
+        }
       }
       else {
-      lobbies[id].currentTimer = (10 - ((Date.now()-start_time)/1000))
-      io.to(id).emit('current_time', lobbies[id].currentTimer);
+        clearInterval(timer);
       }
     }, 1)
   })
