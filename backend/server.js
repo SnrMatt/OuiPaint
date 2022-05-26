@@ -7,6 +7,7 @@ const fs = require('fs');
 
 
 
+
 const io = new Server(server,{
   cors:{
     origin:'http://localhost:3000'
@@ -46,6 +47,7 @@ io.on('connection', (socket)=>{
         currentTimer: 80,
         currentLobbyState: false,
         currentWord: null,
+        currentAcceptedUsers: [],
         extra_words: wordList,
       }
    
@@ -224,6 +226,7 @@ function StartRoundGameplay(socket,id){
   let choices = getThreeWords(all_words);  
   io.to(lobbies[id].sockets[lobbies[id].currentUserTurn]).emit('create_user_choices', choices);
   socket.on('user_response', (word)=>{
+    console.log('user response', lobbies[id].currentTimer);
     lobbies[id].currentWord  = word;
     let hidden_word = lobbies[id].currentWord.split(' ');
     hidden_word = hidden_word.map(letters => {return letters.length});
@@ -234,9 +237,9 @@ function StartRoundGameplay(socket,id){
     let timer = setInterval(()=>{
       if(lobbies[id]){
         if(lobbies[id].currentTimer <= 0) {
-          lobbies[id].currentTimer = 0;
-          console.log(lobbies[id].currentTimer);
-          io.to(id).emit('current_time', lobbies[id].currentTimer);
+          //When the time runs out we need to get scores and change to next player
+          io.to(id).emit('current_time', 0);
+          after_round_handling(id)
           clearInterval(timer);
           
         }
@@ -254,8 +257,31 @@ function StartRoundGameplay(socket,id){
 
 }
 function check_if_matches(chat,id,socket){
-if(chat == lobbies[id].currentWord && lobbies[id].currentTimer != 0){
+if(chat == lobbies[id].currentWord && lobbies[id].currentTimer != 0 && lobbies[id]['sockets'].indexOf(socket.id) != lobbies[id].currentUserTurn ){
   console.log('Correct!');
-  console.log(socket.id);
+  lobbies[id].currentAcceptedUsers.push(
+    {
+      'user': lobbies[id]['sockets'].indexOf(socket.id), 
+      'time_completed': lobbies[id].currentTimer
+  })
+  console.log(lobbies[id].currentAcceptedUsers); 
 }
+}
+
+function after_round_handling(id){
+//I will probably need to collect an array of users that answered;
+
+//Check the points heres
+
+
+
+//Move on the next user, 
+
+let next_user = lobbies[id].currentUserTurn + 1 >= lobbies[id]['users'].length ? 0 : lobbies[id].currentUserTurn + 1;
+//update current turn
+lobbies[id].currentUserTurn = next_user;
+lobbies[id].currentTimer = 80;
+let choices = getThreeWords(all_words);
+io.to(lobbies[id]['sockets'][lobbies[id].currentUserTurn]).emit('create_user_choices', choices);
+
 }

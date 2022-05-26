@@ -94,7 +94,7 @@ export default function Landing(){
         </div>
 
         <div className={`${popup2}  flex justify-center items-center transition-opacity duration-300 w-screen h-screen fixed `} style = {{backgroundColor: 'rgb(0,0,0,.8)'}}>
-                <div className="w-1/2 h-1/2 items-center rounded-3xl bg-white flex relative  ">
+                <div className="w-1/2 h-2/3 items-center rounded-3xl bg-white flex relative  ">
                     <div className="w-1/2 h-4/6 flex flex-col justify-center items-center border-r-2 border-gray-400 gap-10 ">
                       <h1 className="text-3xl text-purple-500 font-bold">Total Rounds</h1>
                         <div className="flex gap-1">
