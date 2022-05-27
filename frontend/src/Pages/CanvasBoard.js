@@ -16,7 +16,7 @@ export default function Canvasboard(){
     let total_allowed_time = .5 * 1000
     let color = ['black', 'red', 'green', 'blue', 'yellow'];
     const [lobby, setLobby] = useState(null);
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState();
     const [chatMessages, addMessages] = useState([]);
     const [startGame, setGameState] = useState();
     var drawColor = 'black'
@@ -107,6 +107,9 @@ export default function Canvasboard(){
            
             setUser(currentUser);
         })
+        socket.on('update_points', (lobby_info)=>{
+            setLobby(lobby_info);           
+        })
          /**
          * Round Listeners
          */
@@ -130,6 +133,7 @@ export default function Canvasboard(){
                     setDisplay(true);
                     setChoices(choices)
         })
+   
         socket.on('current_time', (time_left)=>{
             setTime(time_left);
            requestAnimationFrame(()=>{handleTimer(time_left)})
@@ -164,6 +168,8 @@ export default function Canvasboard(){
            lastX = x
            lastY = y;
         })
+ 
+
 
 
         /**
@@ -212,21 +218,20 @@ export default function Canvasboard(){
     const handleChat =(e)=>{
         if(e.key ==='Enter'){
             let message = e.target.value;
-            console.log(message);
+    
             socket.emit('send_chat', user.username.toString(), message, roomID);
-            console.log(chatMessages);
+  
             addMessages([...chatMessages, <SelfMessage username = {user.username}>{message}</SelfMessage>])
             e.target.value = '';
         }
     }
     const handleWordChoice = (word)=>{
+        console.log(word);
             socket.emit('user_response', word)
             setDisplay(false)
     }
             //#Chat Message Listeners
             socket.on('new_message', (username, message)=>{
-                console.log('message recieved');
-                console.log(chatMessages);
                 addMessages([...chatMessages, <OthersMessage username = {username}>{message}</OthersMessage>])
             })
 
@@ -240,7 +245,7 @@ export default function Canvasboard(){
                     <div className = 'flex flex-col h-auto w-full'>
                             <div className="flex flex-col gap-1 border-b-2 border-gray-500">
                            
-                                {lobby && lobby.map(user =>{return <div key={user.username.toString()} className="p-1"> < UserProfile background={user.background}>{user.username}</UserProfile> </div>})}
+                                {lobby && lobby.map(user =>{return <div key={user.username.toString()} className="p-1"> < UserProfile background={user.background} points ={user.points}>{user.username}</UserProfile> </div>})}
 
                             </div>
                     </div>

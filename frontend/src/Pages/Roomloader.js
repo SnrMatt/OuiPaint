@@ -26,7 +26,7 @@ export default function Roomloader(){
               
                 <div className="h-24 w-24  rounded-full animate-spin  border-4 border-t-black"></div>
             </div>
-            <span className="flex flex-col absolute bottom-24 gap-5">
+            <span className="flex flex-col absolute bottom-24 gap-5 text-gray-500">
                 If you dont connect to a lobby go back and try again.
                 <span
                 onClick ={()=>{

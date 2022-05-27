@@ -14,6 +14,7 @@ export default function UserProfile(props){
         {props.children && props.children[0].toUpperCase()}
         </div>
         <span className="w-36 pl-4 overflow-ellipsis whitespace-nowrap overflow-hidden"> {props.children.toUpperCase()}</span>
+        <span className="absolute right-5">{props.points}</span>
        </div>
     );
     
