@@ -4,7 +4,8 @@ module.exports = {
     extend: {
       colors: {
         primary:'#16222A',
-        secondary: '#3A6073'
+        secondary: '#3A6073',
+        fainted: 'rgb(0,0,0,0.8)'
 
       },
       maxWidth:{
@@ -19,6 +20,9 @@ module.exports = {
       },
       fontFamily: {
         'main': "font-family: 'Merriweather Sans', sans-serif;"
+      },
+      screens:{
+        'md': {'min': '1500px'}
       }
     },
   },

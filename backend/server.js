@@ -4,15 +4,17 @@ const cors = require('cors')
 const server = require('http').createServer(app);
 const { Server } = require('socket.io');
 const fs = require('fs');
+const { hostname } = require('os');
 
 
 
 
 const io = new Server(server,{
   cors:{
-    origin:'http://localhost:3000'
+    origin:`http://192.168.2.177:3000`
   }
 });
+
 
 const all_words = getData();
 getThreeWords(all_words);
@@ -100,6 +102,7 @@ io.on('connection', (socket)=>{
       else { 
         socket.emit('leave_room')
       }
+      io.to(id).emit('get_round_count', lobbies[id].currentRound);
     })
     /**
      * @
@@ -282,11 +285,12 @@ lobbies[id].currentAcceptedUsers.forEach((user) => {
   let points = Math.floor(1500 - (Math.floor(1500 * difference)))
   lobbies[id]['users'][user.user].points += points;
   io.to(id).emit('update_points', lobbies[id]['users']);
+  lobbies[id].currentAcceptedUsers = [];
 });
 
 
 
-
+//Create a socket in response to scoreboard display
 
 //Move on the next user, 
 
@@ -294,6 +298,7 @@ let next_user = lobbies[id].currentUserTurn + 1 >= lobbies[id]['users'].length ?
 //update current turn
 if(next_user == 0){ 
   lobbies[id].currentRound-=1;
+  io.to(id).emit('get_round_count');
 }
 if(lobbies[id].currentRound != 0){
 lobbies[id].currentUserTurn = next_user;

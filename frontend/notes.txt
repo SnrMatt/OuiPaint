@@ -1,3 +1,5 @@
-NOT GOOD: 
-    The organization of the lobbies current turn isnt ideal, due to problems when user leaves or refresh the page;
-    To fix, Implement lobby cleanup and make sure if the page refresh they join under same by using localstorage.
+Things to finish:
+
+Points system,
+Minor Display changes -> Display users who got points -> Display a better scoreboard -> Change Username input (Add a component before the Roomloader component).
+Create a ReadME for github

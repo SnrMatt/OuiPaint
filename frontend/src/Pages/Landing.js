@@ -29,7 +29,7 @@ export default function Landing(){
 
   //Simply handles UI pop up for "join room"
   const handlePopup = ()=>{
-    if(popup==='opacity-0 -z-10'){
+    if(popup ==='opacity-0 -z-10'){
       setStatus('opacity-100 z-40');
     }
     else{
@@ -79,62 +79,88 @@ export default function Landing(){
   },[])
     return(
         <>
-        <div className={`${popup}  flex justify-center items-center transition-opacity duration-300 w-screen h-screen fixed `} style ={{backgroundColor:'rgb(0,0,0,0.8)'}}>
-           <div className="bg-white h-3/4 w-3/4 rounded-lg p-5 md:w-1/3 md:h-2/6 transition-all duration-500 flex items-center justify-center gap-10 flex-col" >
-           <input 
-           className = 'block relative mx-auto border-2 border-purple-500 rounded-3xl text-center p-3 outline-none  text-xl focus:-translate-y-1 focus:shadow-xl focus:shadow-purple-400 transition-all duration-500'type='input' 
-           placeholder="Enter Room ID"
-           onChange={(evt)=>{setRoomID(evt.target.value)}}
-           />
-           <div className="flex gap-10 items-end">
-           <span  onClick={()=>{joinRoom()}}><Button>OK</Button></span>
-            <span onClick={()=>{handlePopup()}}><Button>Cancel</Button></span>
-           </div>
-           </div>
-        </div>
-
-        <div className={`${popup2}  flex justify-center items-center transition-opacity duration-300 w-screen h-screen fixed `} style = {{backgroundColor: 'rgb(0,0,0,.8)'}}>
-                <div className="w-1/2 h-1/2 items-center rounded-3xl bg-white flex relative  ">
-                    <div className="w-1/2 h-4/6 flex flex-col justify-center items-center border-r-2 border-gray-400 gap-10 ">
-                      <h1 className="text-3xl text-purple-500 font-bold">Total Rounds</h1>
-                        <div className="flex gap-1">
-                          <button className="bg-black hover:bg-purple-500 transition-all duration-300 px-4 rounded-full " onClick={()=>{handleCount('sub')}}><FontAwesomeIcon className="text-white" icon= {faChevronLeft}/></button>
-                          <div className="px-5 py-1 text-2xl">{currentRoundCount}</div>
-                          <button className="bg-black  hover:bg-purple-500 transition-all duration-300 px-4 rounded-full" onClick={()=>{handleCount('add')}}><FontAwesomeIcon className="text-white" icon = {faChevronRight}/></button>  
-                        </div>
-                    </div>
-                    <div className="w-1/2 h-5/6">
-                        <div className="flex flex-col gap-5 justify-center items-center w-full h-full ">
-                        <h1 className="text-3xl text-purple-500 font-bold">Custom Words</h1>
-                        <textarea onChange={(e)=>{setList(e.target.value)}} className="border-2 rounded-md border-gray-400 focus:outline-purple-500 w-3/4 resize-none p-2" rows={7} placeholder="Place a comma between each word.&#10;Ex: word1,word2,word3"></textarea>
-                        </div>
-                    </div>
-                    <span className="absolute bottom-3 left-1/2 -translate-x-1/2 w-auto flex gap-5">
-                      <span onClick={()=>{socket.emit('request_room', username, currentRoundCount,wordList)}}><Button>Create</Button></span>
-                      <span onClick ={()=>{handlePopup2()}}><Button >Cancel</Button></span>
-                      </span>
+            <div className="h-screen w-screen flex flex-col  justify-evenly items-center">
+              {/**-----------------------OuiPaint----------------------- */}
+              <div className="text-8xl font-bold   bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-600">
+              OuiPaint
               </div>
-        </div>
-        
-        <div className = 'w-screen h-screen flex justify-center items-center bg-white flex-col gap-24 '>
-        <div className=" leading-normal justify-self-start text-center text-5xl font-extrabold  text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-500 md:text-9xl md:leading-normal  ">
-          Oui Paint
-        </div>
-                <div className="w-screen  rounded-xl p-2">
-                   <div > 
-                   <input 
-                   className = 'block relative mx-auto border-2 border-purple-500 rounded-3xl text-center p-3 outline-none  text-xl focus:-translate-y-1 focus:shadow-lg focus:shadow-purple-500 transition-all duration-500'type='input' 
-                   placeholder="Enter Username"
-                   onChange={(evt)=> {setUsername(evt.target.value)}}
-                   /> 
+              {/**-----------------------Button UI----------------------- */}
+              <div className="flex justify-evenly w-full">
+                <div 
+                className="cursor-pointer bg-gray-700 p-1 rounded-xl transition-all duration-300 hover:-translate-y-1">
+                  <div
+                  onClick={()=>{handlePopup()}} 
+                  className="text-lg rounded-xl text-white p-2">
+                    Create a lobby
+                  </div>
                 </div>
-                  
+                <div 
+                className="cursor-pointer bg-gray-700 p-1 rounded-xl transition-all duration-300 hover:-translate-y-1">
+                  <div 
+                  onClick={()=>{handlePopup2()}}
+                  className="text-lg rounded-xl text-white p-2">
+                    Join a lobby
+                  </div>
                 </div>
-                <div className="justify-self-center flex gap-10">
-                      <span onClick={()=>{handlePopup2()}}><Button>Create a room</Button></span>
-                      <span onClick={()=>{handlePopup()}}><Button>Join a room</Button></span>
+              </div>
+              {/**-----------------------PopUp UI----------------------- */}
+                {/**-----------------------Create Game UI----------------------- */}
+              <div className={`${popup} w-screen h-screen bg-fainted absolute top-0 flex justify-center items-center transition-all duration-300`}>
+                  <div 
+                  className={` w-5/6 h-5/6 bg-gray-300 rounded-md flex flex-col md:flex-row` }>
+                      <div className="w-full h-full flex flex-col justify-evenly items-center">
+                        {/**-----------------------PopUp UI Inputs----------------------- */}
+                            <input 
+                            onKeyUp={(e)=>{setUsername(e.target.value)}}
+                            className="p-2  rounded-full text-center focus:border-purple-500 focus:border-2 focus:shadow-md focus:shadow-purple-400 focus:outline-none transition-all duration-300 " type='text' placeholder="Enter Username"/>
+                            <textarea 
+                              className="p-3 w-5/6 h-2/6 focus:outline-none focus:border-2 focus:border-purple-500 focus:shadow-md focus:shadow-purple-400 rounded-md transition-all duration-300 resize-none"
+                              placeholder="Enter custom words seperated by commas  Ex:Word1,Word2,Word3"
+                              />
+                              {/**-----------------------Round Setup----------------------- */}
+                              <div className="w-1/2 flex flex-col  items-center ">
+                                <span className="text-2xl">Rounds</span>
+                                <div className="flex justify-evenly items-center  text-xl w-full">
+                                  <span 
+                                  onClick={()=>{handleCount('sub')}}
+                                  className="bg-purple-500 w-10 h-10 flex justify-center items-center rounded-full hover:cursor-pointer active:translate-y-1 transition-all duration-100"><FontAwesomeIcon className="text-white text-xl" icon={faChevronLeft}/></span>
+                                  {currentRoundCount}
+                                  <span 
+                                  onClick={()=>{handleCount('add')}}
+                                  className="bg-purple-500 w-10 h-10 flex justify-center items-center rounded-full hover:cursor-pointer active:translate-y-1 transition-all duration-100"><FontAwesomeIcon className="text-white text-xl" icon={faChevronRight}/></span>
+                                </div>
+                              </div>
+                              {/**-----------------------PopUp UI Controls----------------------- */}
+                              <div className="flex justify-evenly w-full">
+                                <span><Button>Create</Button></span>
+                                <span onClick={()=>{handlePopup()}}><Button>Cancel</Button></span>
+                              </div>
+                      </div>
+                      
+                  </div>
+              </div>
+              {/**-----------------------Join Game UI----------------------- */}
+              <div className={` ${popup2} transition-all duration-300 h-screen w-screen bg-fainted absolute top-0 flex justify-center items-center`}>
+                <div className="h-5/6 w-5/6 bg-gray-300 rounded-md flex justify-evenly items-center flex-col" >
+               
+                <div className="flex flex-col text-center">
+                  Username
+                <input 
+                onKeyUp={(e)=>{setUsername(e.target.value)}}
+                className="p-2 mb-10 rounded-full text-center focus:border-purple-500 focus:border-2 focus:shadow-md focus:shadow-purple-400 focus:outline-none transition-all duration-300 " type='text' placeholder="Enter Username"/>
+                  Room ID
+                <input 
+                onClick={(e)=>{setRoomID(e.target.value)}}
+                className="p-2  rounded-full text-center focus:border-purple-500 focus:border-2 focus:shadow-md focus:shadow-purple-400 focus:outline-none transition-all duration-300 " type='text' placeholder="Enter Room ID"/>
                 </div>
-        </div>
+                <div className="flex w-full justify-evenly">
+                  <span onClick={()=>{joinRoom()}}><Button>Join</Button></span>
+                  <span onClick={()=>{handlePopup2()}}><Button>Cancel</Button></span>
+                </div>
+                </div>
+
+              </div>
+            </div>    
         </>
     );
 }

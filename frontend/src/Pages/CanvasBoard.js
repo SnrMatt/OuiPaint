@@ -4,7 +4,7 @@ import { SocketContext } from "../Utils/Socketprovider";
 import UserProfile from "../Components/UserProfile";
 import SelfMessage from "../Components/Messages/self_message";
 import OthersMessage from "../Components/Messages/others_message";
-import { faChessKing, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faChessKing, faTrash, faComment, faUser, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 export default function Canvasboard(){
     const canvasRef = useRef()
@@ -22,9 +22,12 @@ export default function Canvasboard(){
     var drawColor = 'black'
     const [displayChoice, setDisplay] = useState(false);
     const [currentChoices, setChoices] = useState(null);
+    const [currentRound, setRoundCount] = useState(0);
     const [currentTime, setTime] = useState(null);
     const [currentWord, setWord] = useState(null);
-
+    /**-----------------------Mobile Drawers State----------------------- */
+    const [chatIsOpen, setChatStatus] = useState(false);
+    const [infoIsOpen, setInfoStatus] = useState(false);
     useEffect(()=>{
 
         //Drawing Variables
@@ -51,7 +54,7 @@ export default function Canvasboard(){
          * Canvas / Windows Listeners
          */
     window.addEventListener('resize', ()=>{
-        canvas.width = window.innerWidth - (window.innerWidth  * .25);
+        canvas.width = window.innerWidth ;
         canvas.height = window.innerHeight;
         ctx.fillStyle='white';
         ctx.fillRect(0,0,canvas.width, canvas.height);
@@ -61,6 +64,29 @@ export default function Canvasboard(){
       x = e.offsetX;
       y = e.offsetY;
      })
+     canvas.addEventListener('touchmove', (e)=>{
+        x = e.touches[0].clientX;
+        y = e.touches[0].clientY;
+       })
+       canvas.addEventListener('touchmove', (e)=>{
+        lastX = x;
+        lastY = y;
+        interval = setInterval(()=>{
+        
+          if(total_time_drawn !== total_allowed_time){
+            socket.emit('position', {x: x, y: y, x2: lastX, y2 :lastY}, roomID, drawColor)
+            if(x !== lastX  || y !== lastY){
+                socket.emit('send_health_amount', total_health, total_time_drawn, roomID);
+            }
+                
+          }
+          else {
+            clearInterval(interval) 
+          }
+        }, 1)
+
+
+    })
      canvas.addEventListener('mouseleave', ()=>{
          clearInterval(interval)
      })
@@ -109,6 +135,9 @@ export default function Canvasboard(){
         })
         socket.on('update_points', (lobby_info)=>{
             setLobby(lobby_info);           
+        })
+        socket.on('get_round_count', ()=>{
+            setRoundCount(currentRound + 1);
         })
          /**
          * Round Listeners
@@ -206,8 +235,7 @@ export default function Canvasboard(){
                 timerCtx.lineCap = 'round';
                 timerCtx.stroke();
     }
-
-       
+    
 
     },[])
 
@@ -225,6 +253,22 @@ export default function Canvasboard(){
             e.target.value = '';
         }
     }
+    const handleChatDrawer = ()=>{
+        if(chatIsOpen){
+            setChatStatus(false);
+        }
+        else{
+            setChatStatus(true);
+        }
+    }
+    const handleInfoDrawer = ()=>{
+        if(infoIsOpen){
+            setInfoStatus(false);
+        }
+        else{
+            setInfoStatus(true);
+        }
+    }
     const handleWordChoice = (word)=>{
         console.log(word);
             socket.emit('user_response', word)
@@ -237,55 +281,85 @@ export default function Canvasboard(){
 
     return(
         <>
-            <div className ="h-screen w-screen relative  ">
-            
-                 {/**Chat Message*/}
-                 <div className = ' flex flex-col h-screen w-1/4 bg-gray-600 border-r-2 border-gray-500'>
-              
-                    <div className = 'flex flex-col h-auto w-full'>
-                            <div className="flex flex-col gap-1 border-b-2 border-gray-500">
-                           
-                                {lobby && lobby.map(user =>{return <div key={user.username.toString()} className="p-1"> < UserProfile background={user.background} points ={user.points}>{user.username}</UserProfile> </div>})}
+            <div className="h-screen w-screen text-black overflow-hidden relative">
+                {/**-----------------------Color Tools----------------------- */}
+                <div className="flex gap-5 absolute top-5 left-1/2 -translate-x-1/2">
+                    {color.map((currentColor)=>{
+                        return <button key={currentColor} onClick={()=>{socket.emit('send_color',currentColor,roomID)}} className ="w-10 h-10 rounded-full border-black border-4 focus:border-blue-500" style ={{backgroundColor: `${currentColor}`}}></button>
+                    })}
+                    <button 
+                    className="w-10 h-10"
+                    onClick = {()=>{socket.emit('request_clear_board', roomID)}}
+                    >
+                        <FontAwesomeIcon className="text-4xl" icon={faTrash}/>
+                    </button>
+                </div>     
+                {/**-----------------------Drawing Board-----------------------*/}
+                <canvas height = {window.innerHeight} width={window.innerWidth} ref={canvasRef} ></canvas>
+                {/**-----------------------Health Bar-----------------------*/}
+                <canvas className='rounded-full absolute top-20 left-1/2 -translate-x-1/2' height= {20} width={300}  ref={healthBarRef}></canvas>
+                {/**-----------------------Timer-----------------------*/}
+                <canvas className="absolute top-0" height = {40} width={40} ref={timerRef}></canvas>
 
-                            </div>
+                {/**-----------------------UI Buttons for Mobile-----------------------*/}
+                <button 
+                    className="md:hidden w-14 h-14 flex justify-center items-center p-4 bg-gradient-to-r from-purple-500 to-pink-500 absolute bottom-24 left-5 rounded-full transition-all duration-200  active:translate-y-1 active:bg-green-500"
+                    onClick={()=>{handleChatDrawer()}}
+                >
+                    <FontAwesomeIcon className="text-3xl -scale-x-100 text-white" icon={faComment}/>
+                </button>
+
+                <input 
+                    className="bg-gray-600 px-6 py-3 absolute bottom-10 rounded-full left-1/2 -translate-x-1/2 text-white focus:outline-none" 
+                    type={'text'} 
+                    placeholder="Enter Answer or Message!"
+                    onKeyUp={(e)=>handleChat(e)}
+                />
+                <button
+                    className="w-14 h-14 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full absolute bottom-24 right-5 transition-all duration-200  active:translate-y-1 active:bg-green-500"
+                    onClick={()=>{handleInfoDrawer()}}
+                >
+                    <FontAwesomeIcon className="text-white text-3xl " icon={faUser}/>
+                </button>
+                {/**-----------------------UI Components-----------------------*/}
+                {/**Message Display for Mobile*/}
+            <div className={`${chatIsOpen ? '':'-translate-x-full'} md:translate-x-0 md:w-1/6 h-screen w-screen absolute bg-gray-700 top-0 flex flex-col duration-500 transition-all`}>
+                <div className="w-full h-5/6 flex flex-col relative p-4 gap-5 overflow-y-auto ">
+                    {chatMessages && chatMessages.map(message=>{return message})}
+                </div>
+                <div className="w-fill h-1/6 relative">
+                    <div className="md:hidden absolute flex bottom-10 left-1/2 -translate-x-1/2 w-full gap-4 justify-center items-center">
+                        <input 
+                            className="bg-gray-600 px-6 py-3  rounded-full  text-white focus:outline-none" 
+                            type={'text'} 
+                            placeholder="Enter Answer or Message!"
+                            onKeyUp={(e)=>handleChat(e)}
+                        />
+                        <button
+                            className="h-12 w-12 bg-red-500  rounded-full flex justify-center items-center"
+                            onClick={()=>{handleChatDrawer()}}
+                        >
+                            <FontAwesomeIcon className="text-white text-3xl" icon={faXmark}/>
+                        </button>
                     </div>
-                    <div className="h-full w-full flex flex-col relative p-4 gap-5 overflow-y-auto">
-                            {chatMessages && chatMessages.map(message=>{return message})}           
-                </div>
-                    <div className="w-full  p-4 flex justify-center"> <input className="w-2/3 h-10 rounded-md bg-gray-500 text-white p-1 focus:outline-none"  onKeyUp={(e)=>handleChat(e)}  type='text'/></div>
-            </div>
-               {(displayChoice === true) && 
-               <div className="h-full w-3/4 absolute top-0 right-0  z-50" style = {{backgroundColor: 'rgb(0,0,0,.9'}}>
-                   <div className="h-full w-full flex justify-evenly items-center ">{currentChoices && currentChoices.map(el=>{return <button onClick={()=>{handleWordChoice(el)}} className="bg-white text-4xl px-10 py-3 active:translate-y-0 rounded-full transition-all hover:shadow-xl  hover:-translate-y-3 hover:bg-green-500 hover:text-white">{el}</button>})}</div>
-               </div> }
-                {/**Player pregame messages */}
-                 {(user && user.role === 'leader' && startGame === false ) && 
-                   <div className="w-3/4 h-full  absolute top-0 right-0 z-50 flex flex-col justify-center items-center gap-5" style={{backgroundColor:'rgb(0,0,0,.9)'}}>
-                        <h1 className="text-white text-5xl">Start Game?</h1>
-                        <button onClick={()=>{socket.emit('start_game',  roomID)}} className="bg-green-500 text-3xl rounded-lg px-3 py-1 text-white hover:bg-green-700 active:translate-y-1 transition-all">Start</button>
-                    </div>}
-                    {(user && user.role === 'player' && startGame === false ) && 
-                   <div className="w-3/4 h-full  absolute top-0 right-0 z-50 flex flex-col justify-center items-center gap-5" style={{backgroundColor:'rgb(0,0,0,.9)'}}>
-                        <h1 className="text-white text-5xl text-center">Waiting for leader to start game...</h1>
-                    </div>}
-                {/**Drawing Board*/}
-              
-                <div className = 'absolute top-0 right-0'>
-                <div className="absolute left-1/2 top-40 z-50 -translate-x-1/2 flex gap-4">{currentWord}</div>
-                <div className="absolute right-32 top-10 z-50 text-2xl ">
-                    {/**Timer Canvas */}
-                    <canvas height ={100} width={100}  ref ={timerRef}></canvas>
-                    <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">{Math.floor(currentTime)}</span>
-                </div>
-                        <canvas  height ={window.innerHeight} width={window.innerWidth - (window.innerWidth  * .25)} ref={canvasRef}></canvas>
-                                 {/**Health Bar */}
-                        <canvas className="absolute top-28 left-1/2 -translate-x-1/2 rounded-xl" height = {30} width = {300} ref = {healthBarRef}/>
-                    {/**Color UI*/} 
-                        <div className = 'flex gap-10 absolute left-1/2 -translate-x-1/2 top-10'>
-                        {color.map((currentColor) =>{return <div key ={currentColor} onClick = {()=>{socket.emit('send_color', currentColor, roomID)}} className = 'hover:cursor-pointer hover:border-sky-500 hover:translate-y-1  transition-all z-50 w-14 h-14 border-4  border-gray-700 rounded-full' style ={{backgroundColor: `${currentColor}`}}></div>})}
-                        <div className="flex items-center hover:cursor-pointer hover:translate-y-1  transition-all" onClick = {()=>{socket.emit('request_clear_board', roomID)}}><FontAwesomeIcon className="h-12 hover: " icon= {faTrash}/></div>
                 </div>
                 </div>
+                {/**Lobby Information for Mobile */}
+                <div className={`${infoIsOpen ? '' : 'translate-x-full'} md:translate-x-0 md:w-1/6 md:right-0 h-screen w-screen  absolute bg-gray-700 top-0 transition-all duration-500`}>
+                    <div className="h-4/6 w-full">
+                        {lobby && lobby.map(user =>{return <div key={user.username.toString()} className="p-1"> < UserProfile background={user.background} points ={user.points}>{user.username}</UserProfile> </div>})}
+                    </div>
+                    <div className="h-2/6 w-full p-5 text-white text-3xl">
+                        {currentRound && <span>Round: {currentRound}</span>}
+                    </div>
+                    <button 
+                    className="md:hidden absolute bottom-10 h-14 w-14 bg-red-500 rounded-full left-1/2 -translate-x-1/2"
+                    onClick={()=>{handleInfoDrawer()}}
+                    >
+                        <FontAwesomeIcon className="text-white text-3xl" icon ={faXmark}/>
+                    </button>
+                </div>
+
             </div>
         </>
     );
