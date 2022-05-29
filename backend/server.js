@@ -258,8 +258,7 @@ function getThreeWords(data){
 function StartRoundGameplay(socket,id){ 
   let choices = getThreeWords(all_words);  
   io.to(lobbies[id].sockets[lobbies[id].currentUserTurn]).emit('create_user_choices', choices);
- 
-
+  console.log('created choices');
 }
 function check_if_matches(chat,id,socket){
 if(chat == lobbies[id].currentWord && lobbies[id].currentTimer != 0 && lobbies[id]['sockets'].indexOf(socket.id) != lobbies[id].currentUserTurn ){

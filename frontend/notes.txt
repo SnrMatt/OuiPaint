@@ -1,5 +1,5 @@
-Things to finish:
+Things to fix:
 
-Points system,
-Minor Display changes -> Display users who got points -> Display a better scoreboard -> Change Username input (Add a component before the Roomloader component).
-Create a ReadME for github
+Change the way things are drawn on the board. No last X and Y.
+
+

@@ -359,8 +359,28 @@ export default function Canvasboard(){
                         <FontAwesomeIcon className="text-white text-3xl" icon ={faXmark}/>
                     </button>
                 </div>
-
             </div>
+                             {/**-----------------------Pre-Round Display-----------------------*/}
+            {/**Leader Display */}
+            { (user && user.role==='leader') && 
+            <div className="w-screen h-screen bg-fainted absolute top-0 flex justify-evenly items-center flex-col">
+                <div className="h-3/5 w-5/6 bg-white rounded-md ">
+                    <div className="h-1/2 w-full grid grid-cols-3 grid-rows-2 justify-center ">
+                    <div className="w-14 h-14 bg-red-500 rounded-full justify-self-center"></div>
+                    <div className="w-14 h-14 bg-red-500 rounded-full"></div>
+                    <div className="w-14 h-14 bg-red-500 rounded-full"></div>
+                    <div className="w-14 h-14 bg-red-500 rounded-full"></div>
+                    <div className="w-14 h-14 bg-red-500 rounded-full"></div>
+                    <div className="w-14 h-14 bg-red-500 rounded-full"></div>
+                    </div>
+                </div>
+                <div className="bg-green-500 text-white text-xl w-auto px-3 py-2  rounded-full hover:cursor-pointer">Start Game</div>
+            </div>}
+            {/**Player Display */}
+            { (user && user.role==='player') && 
+            <div className="w-screen h-screen bg-fainted absolute top-0  justify-center items-center text-white text-3xl flex">
+                Waiting for leader to start
+            </div>}
         </>
     );
 }
