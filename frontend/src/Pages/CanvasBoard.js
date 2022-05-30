@@ -278,6 +278,18 @@ export default function Canvasboard(){
             socket.on('new_message', (username, message)=>{
                 addMessages([...chatMessages, <OthersMessage username = {username}>{message}</OthersMessage>])
             })
+    const listOnlineUsers = ()=>{
+        let current_list = [];
+        for(var i = 0 ; i < 6; i++){ 
+            if(i < lobby.length){
+                current_list.push((lobby[i].username)[0]);
+            }
+            else { current_list.push('?')}
+        }
+        return <div className="grid grid-cols-3 grid-rows-2">
+                {current_list.map(user =>{return <div className="justify-self-center self-center w-14 flex justify-center items-center h-14 rounded-full bg-gray-300">{user}</div>})}
+               </div>
+    }
 
     return(
         <>
@@ -365,14 +377,7 @@ export default function Canvasboard(){
             { (user && user.role==='leader') && 
             <div className="w-screen h-screen bg-fainted absolute top-0 flex justify-evenly items-center flex-col">
                 <div className="h-3/5 w-5/6 bg-white rounded-md ">
-                    <div className="h-1/2 w-full grid grid-cols-3 grid-rows-2 justify-center ">
-                    <div className="w-14 h-14 bg-red-500 rounded-full justify-self-center"></div>
-                    <div className="w-14 h-14 bg-red-500 rounded-full"></div>
-                    <div className="w-14 h-14 bg-red-500 rounded-full"></div>
-                    <div className="w-14 h-14 bg-red-500 rounded-full"></div>
-                    <div className="w-14 h-14 bg-red-500 rounded-full"></div>
-                    <div className="w-14 h-14 bg-red-500 rounded-full"></div>
-                    </div>
+                    {lobby && listOnlineUsers()}
                 </div>
                 <div className="bg-green-500 text-white text-xl w-auto px-3 py-2  rounded-full hover:cursor-pointer">Start Game</div>
             </div>}
