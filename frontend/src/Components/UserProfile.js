@@ -5,7 +5,7 @@ export default function UserProfile(props){
 
 
     return(
-       <div className="flex items-center text-xl relative text-white">
+       <div className="flex items-center text-md relative text-white">
            {props.role === 'leader' && <span className="absolute -top-10"><FontAwesomeIcon icon = {faCrown}/></span>}
         <div 
         className="h-16  w-16 overflow-auto  rounded-full self-center  flex items-center text-white justify-center"

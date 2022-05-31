@@ -21,10 +21,12 @@ export default function Canvasboard(){
     const [startGame, setGameState] = useState();
     var drawColor = 'black'
     const [displayChoice, setDisplay] = useState(false);
+    const [displayGameOver, setGameOverDisplay] = useState(false);
     const [currentChoices, setChoices] = useState(null);
     const [currentRound, setRoundCount] = useState(0);
     const [currentTime, setTime] = useState(null);
     const [currentWord, setWord] = useState(null);
+    const [finalScoreboard, setScoreboard] = usestae(null);
     /**-----------------------Mobile Drawers State----------------------- */
     const [chatIsOpen, setChatStatus] = useState(false);
     const [infoIsOpen, setInfoStatus] = useState(false);
@@ -150,7 +152,7 @@ export default function Canvasboard(){
                         word.map(length =>{
                            let blank_word = []
                             for(var i = 0; i < length; i++){
-                                blank_word.push(<div className="w-10 h-10 border-b-2 border-black"></div>)
+                                blank_word.push(<div className="w-5 h-5 border-b-2 border-black"></div>)
                             }
                            return <div className="flex gap-1">{blank_word}</div>
                         })
@@ -159,6 +161,7 @@ export default function Canvasboard(){
             )
         })
         socket.on('create_user_choices',(choices)=>{
+            console.log('display');
                     setDisplay(true);
                     setChoices(choices)
         })
@@ -166,8 +169,12 @@ export default function Canvasboard(){
         socket.on('current_time', (time_left)=>{
             setTime(time_left);
            requestAnimationFrame(()=>{handleTimer(time_left)})
+          
         })
-      
+        socket.on('game_over', ()=>{
+            console.log('game over');
+            setGameOverDisplay(true);
+        })
         socket.on('change_color', (color)=>{
             ctx.strokeStyle = color;
             console.log(color);
@@ -219,8 +226,6 @@ export default function Canvasboard(){
         healthCtx.fillRect(0,0,  healthbar.width - (healthbar.width * health), healthbar.height);
         }
     const handleTimer=(current_time)=>{
-        //To make it look good, i need to predit where the next second will place the animation
-        //Once we find the difference
         timerCtx.clearRect(0,0,timer.width,timer.height)
                 timerCtx.beginPath();
                 timerCtx.arc(timer.width/2, timer.height/2, timer.width /2 - 10, 0, (2*Math.PI))
@@ -286,7 +291,7 @@ export default function Canvasboard(){
             }
             else { current_list.push('?')}
         }
-        return <div className="grid grid-cols-3 grid-rows-2">
+        return <div className="grid grid-cols-3 grid-rows-2 gap-5" >
                 {current_list.map(user =>{return <div className="justify-self-center self-center w-14 flex justify-center items-center h-14 rounded-full bg-gray-300">{user}</div>})}
                </div>
     }
@@ -311,7 +316,10 @@ export default function Canvasboard(){
                 {/**-----------------------Health Bar-----------------------*/}
                 <canvas className='rounded-full absolute top-20 left-1/2 -translate-x-1/2' height= {20} width={300}  ref={healthBarRef}></canvas>
                 {/**-----------------------Timer-----------------------*/}
-                <canvas className="absolute top-0" height = {40} width={40} ref={timerRef}></canvas>
+                <canvas className="absolute top-32 right-10" height = {50} width={50} ref={timerRef}></canvas>
+                {currentWord && <div className="absolute top-28 left-1/2 -translate-x-1/2">{currentWord}</div>}
+
+
 
                 {/**-----------------------UI Buttons for Mobile-----------------------*/}
                 <button 
@@ -361,8 +369,8 @@ export default function Canvasboard(){
                     <div className="h-4/6 w-full">
                         {lobby && lobby.map(user =>{return <div key={user.username.toString()} className="p-1"> < UserProfile background={user.background} points ={user.points}>{user.username}</UserProfile> </div>})}
                     </div>
-                    <div className="h-2/6 w-full p-5 text-white text-3xl">
-                        {currentRound && <span>Round: {currentRound}</span>}
+                    <div className="h-2/6 w-full p-5 text-white text-xl">
+                        {currentRound && <span>Round:{currentRound}</span>}
                     </div>
                     <button 
                     className="md:hidden absolute bottom-10 h-14 w-14 bg-red-500 rounded-full left-1/2 -translate-x-1/2"
@@ -374,18 +382,46 @@ export default function Canvasboard(){
             </div>
                              {/**-----------------------Pre-Round Display-----------------------*/}
             {/**Leader Display */}
-            { (user && user.role==='leader') && 
+            { (user && user.role==='leader' && startGame ===false) && 
             <div className="w-screen h-screen bg-fainted absolute top-0 flex justify-evenly items-center flex-col">
-                <div className="h-3/5 w-5/6 bg-white rounded-md ">
+                <div className="h-3/5 w-5/6 bg-white rounded-md flex  flex-col justify-evenly items-center md:w-2/6">
                     {lobby && listOnlineUsers()}
+                    {lobby && <span className="text-xl">{lobby.length}/6</span>}
+                    <span className="text-center text-gray-400 w-2/3 ">Start your game whenever everyone is ready.</span>
                 </div>
-                <div className="bg-green-500 text-white text-xl w-auto px-3 py-2  rounded-full hover:cursor-pointer">Start Game</div>
+                <div 
+                onClick={()=>{socket.emit('start_game', roomID)}}
+                className="bg-green-500 text-white text-xl w-auto px-3 py-2  rounded-full hover:cursor-pointer">Start Game</div>
             </div>}
             {/**Player Display */}
-            { (user && user.role==='player') && 
-            <div className="w-screen h-screen bg-fainted absolute top-0  justify-center items-center text-white text-3xl flex">
-                Waiting for leader to start
+            { (user && user.role==='player' && startGame === false) && 
+            <div className="w-screen h-screen bg-fainted absolute top-0  flex-col justify-evenly items-center  flex">
+                 <div className="h-3/5 w-5/6 bg-white rounded-md flex flex-col justify-evenly items-center  md:w-2/6">
+                    {lobby && listOnlineUsers()}
+                    {lobby && <span>{lobby.length}/6</span>}
+                    <span className="text-center text-gray-400 w-2/3">Waiting for the leader to start the game</span>
+                </div>
+                
             </div>}
+            {/**-----------------------Display Choices to user----------------------*/}
+            {displayChoice === true && 
+                <div className="h-screen w-screen bg-fainted absolute top-0 flex flex-col justify-evenly ">
+                    <span className="text-white self-center  h-2/6 flex justify-center items-center text-3xl">Choose a word</span>
+                  <div className="flex flex-col justify-evenly items-center h-full md:flex-row md:w-3/6 md:self-center md:h-auto ">
+                   {currentChoices.map(choice=>{return <div onClick={()=>{handleWordChoice(choice)}} className="hover:cursor-pointer bg-white rounded-full px-4 py-2 text-lg active:translate-y-1 transition-all duration-200">{choice}</div>})}   
+                  </div>
+                
+
+                </div>
+            }
+                 {/**-----------------------Game Over Display----------------------*/}
+            {displayGameOver === true &&
+            <div className="h-screen w-screen bg-fainted flex justify-center items-center absolute top-0">
+                <div className="h-4/6 w-2/3 bg-white rounded-md">
+
+                </div>
+            </div>
+            }
         </>
     );
 }

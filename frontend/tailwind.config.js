@@ -22,7 +22,7 @@ module.exports = {
         'main': "font-family: 'Merriweather Sans', sans-serif;"
       },
       screens:{
-        'md': {'min': '1500px'}
+        'md': {'min': '1000px'}
       }
     },
   },

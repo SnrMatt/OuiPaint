@@ -11,7 +11,7 @@ const { hostname } = require('os');
 
 const io = new Server(server,{
   cors:{
-    origin:`http://192.168.2.177:3000`
+    origin:`http://localhost:3000`
   }
 });
 
@@ -274,7 +274,6 @@ if(chat == lobbies[id].currentWord && lobbies[id].currentTimer != 0 && lobbies[i
 
 function after_round_handling(id){
 //I will probably need to collect an array of users that answered;
- console.log(lobbies[id].currentAcceptedUsers);
 //Check the points heres
 
 //Calculate points for guessers
@@ -299,10 +298,35 @@ if(next_user == 0){
   lobbies[id].currentRound-=1;
   io.to(id).emit('get_round_count');
 }
+
 if(lobbies[id].currentRound != 0){
+  console.log(next_user);
 lobbies[id].currentUserTurn = next_user;
 lobbies[id].currentTimer = 80;
 let choices = getThreeWords(all_words);
+
 io.to(lobbies[id]['sockets'][lobbies[id].currentUserTurn]).emit('create_user_choices', choices);
 }
+else {
+  //Organize the lobby 
+  let scoreboard = bubble_sort(lobbies[id]['users'])
+  io.to(id).emit('game_over',scoreboard);
+}
+}
+
+// :/
+function bubble_sort(points){
+  points = points.map(user=>{return user.points});
+ console.log(points);
+
+ for(var i= 0; i < points.length; i++){
+   for(var j = 0; j < points.length; j++){
+     if(points[i] < points[j]){
+       let temp = points[i];
+       points[i] = points[j];
+       points[j]= temp; 
+     }
+   }
+ }
+ return points;
 }
