@@ -26,7 +26,7 @@ export default function Canvasboard(){
     const [currentRound, setRoundCount] = useState(0);
     const [currentTime, setTime] = useState(null);
     const [currentWord, setWord] = useState(null);
-    const [finalScoreboard, setScoreboard] = usestae(null);
+    const [finalScoreboard, setScoreboard] = useState(null);
     /**-----------------------Mobile Drawers State----------------------- */
     const [chatIsOpen, setChatStatus] = useState(false);
     const [infoIsOpen, setInfoStatus] = useState(false);
@@ -171,7 +171,8 @@ export default function Canvasboard(){
            requestAnimationFrame(()=>{handleTimer(time_left)})
           
         })
-        socket.on('game_over', ()=>{
+        socket.on('game_over', (final_scoreboard)=>{
+            setScoreboard(final_scoreboard);
             console.log('game over');
             setGameOverDisplay(true);
         })
@@ -417,8 +418,8 @@ export default function Canvasboard(){
                  {/**-----------------------Game Over Display----------------------*/}
             {displayGameOver === true &&
             <div className="h-screen w-screen bg-fainted flex justify-center items-center absolute top-0">
-                <div className="h-4/6 w-2/3 bg-white rounded-md">
-
+                <div className="h-4/6 w-2/3 bg-white rounded-md md:w-2/6 flex flex-col justify-center items-center">
+                        {finalScoreboard.map((user,index)=>{return <div style = {{backgroundColor: user.background}}>{index + 1}. {user.name}{user.points}</div>})}
                 </div>
             </div>
             }

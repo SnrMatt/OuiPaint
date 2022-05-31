@@ -316,17 +316,18 @@ else {
 
 // :/
 function bubble_sort(points){
-  points = points.map(user=>{return user.points});
- console.log(points);
+  points = points.map(user=>{return {'name':user.username,'points':user.points, 'background': user.background}});
+
 
  for(var i= 0; i < points.length; i++){
    for(var j = 0; j < points.length; j++){
-     if(points[i] < points[j]){
-       let temp = points[i];
-       points[i] = points[j];
-       points[j]= temp; 
+     if(points[i].points < points[j].points){
+       let temp = points[i].points;
+       points[i].points = points[j].points;
+       points[j].points= temp; 
      }
    }
  }
+ console.log(points);
  return points;
 }
