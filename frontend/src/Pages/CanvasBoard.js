@@ -13,14 +13,12 @@ export default function Canvasboard(){
     const timerRef = useRef();
     const roomID = useParams();
     const socket = useContext(SocketContext);
-    
-    let total_allowed_time = .5 * 500
+    let timerInterval;
     let color = ['black', 'red', 'green', 'blue', 'yellow'];
     const [lobby, setLobby] = useState(null);
     const [user, setUser] = useState();
     const [chatMessages, addMessages] = useState([]);
     const [startGame, setGameState] = useState();
-    var drawColor = 'black'
     const [displayChoice, setDisplay] = useState(false);
     const [displayCorrect, setCorrectDisplay] = useState(false);
     const [displayGameOver, setGameOverDisplay] = useState(false);
@@ -37,13 +35,11 @@ export default function Canvasboard(){
         //Drawing Variables
         let x;
         let y;
-        let lastX;
-        let lastY;
-        let interval;
-        let total_health = 100;
-        let total_time_drawn = 0;
+        let isMouseDown = false;
+        let total_health;
         let canvas = canvasRef.current
         let ctx = canvas.getContext('2d');
+        ctx.strokeStyle = 'black'
         let healthbar = healthBarRef.current;
         let healthCtx = healthbar.getContext('2d');
         let timer = timerRef.current;
@@ -67,55 +63,38 @@ export default function Canvasboard(){
      canvas.addEventListener('mousemove', (e)=>{
       x = e.offsetX;
       y = e.offsetY;
+      if(isMouseDown === true){
+          socket.emit('position', x, y, roomID);
+      }
      })
      canvas.addEventListener('touchmove', (e)=>{
         x = e.touches[0].clientX;
         y = e.touches[0].clientY;
+        socket.emit('position', x, y, roomID);
+        timerInterval = setInterval(()=>{
+            socket.emit('time_drawing', x, y,roomID)
+        },1)
        })
-       canvas.addEventListener('touchmove', (e)=>{
-        lastX = x;
-        lastY = y;
-        interval = setInterval(()=>{
-        
-          if(total_time_drawn !== total_allowed_time){
-            socket.emit('position', {x: x, y: y, x2: lastX, y2 :lastY}, roomID, drawColor)
-            if(x !== lastX  || y !== lastY){
-                socket.emit('send_health_amount', total_health, total_time_drawn, roomID);
-            }
-                
-          }
-          else {
-            clearInterval(interval) 
-          }
-        }, 1)
-
-
+    canvas.addEventListener('touchend', ()=>{
+        socket.emit('release', roomID);
+        clearInterval(timerInterval);
     })
+
      canvas.addEventListener('mouseleave', ()=>{
-         clearInterval(interval)
+        isMouseDown = false;
      })
 
      canvas.addEventListener('mousedown', ()=>{
-         lastX = x;
-         lastY = y;
-         interval = setInterval(()=>{
-         
-           if(total_time_drawn !== total_allowed_time){
-             socket.emit('position', {x: x, y: y, x2: lastX, y2 :lastY}, roomID, drawColor)
-             if(x !== lastX  || y !== lastY){
-                 socket.emit('send_health_amount', total_health, total_time_drawn, roomID);
-             }
-                 
-           }
-           else {
-             clearInterval(interval) 
-           }
-         }, 1)
-
-
+        isMouseDown = true;
+        timerInterval = setInterval(()=>{
+            console.log('time');
+            socket.emit('time_drawing', x, y, roomID)
+        },1)
      })
      canvas.addEventListener('mouseup', ()=>{
-         clearInterval(interval);
+        isMouseDown = false;
+        socket.emit('release', roomID);
+        clearInterval(timerInterval);
      })
 
       
@@ -188,30 +167,23 @@ export default function Canvasboard(){
             ctx.strokeStyle = color;
             console.log(color);
         })
-        socket.on('clear_board', (health)=>{
+        socket.on('clear_board', (total_health)=>{
             ctx.clearRect(0,0,canvas.width,canvas.height)
-           
-            total_time_drawn = 0
-            total_health = total_time_drawn/total_allowed_time;
+            requestAnimationFrame(()=>{handleHealthBar(total_health)})
+          
+           // requestAnimationFrame(()=>{handleHealthBar(total_health)})
+        })
+        socket.on('new_health', (total_health)=>{
             requestAnimationFrame(()=>{handleHealthBar(total_health)})
         })
-        socket.on('new_health_amount', (new_total_health, new_total_time_drawn)=>{
-            
-            total_health = new_total_health
-            total_time_drawn = new_total_time_drawn;
-            requestAnimationFrame(()=>{handleHealthBar(total_health)})
-        })
-        socket.on('draw',({x,y,x2,y2})=>{
-           if(lastX !== x || lastY !== y){
+        socket.on('draw',(x,y, x2,y2)=>{
             ctx.beginPath();
-            ctx.moveTo(x2, y2);
-            ctx.lineWidth =5;
+            ctx.moveTo(x2,y2);
+            ctx.lineTo(x,y);
+            ctx.lineWidth = 5;
             ctx.lineCap = 'round';
-            ctx.lineTo(x,y)
             ctx.stroke();
-           }
-           lastX = x
-           lastY = y;
+            ctx.closePath();
         })
  
 
@@ -339,7 +311,7 @@ export default function Canvasboard(){
                 </button>
 
                 <input 
-                    className="bg-gray-600 px-6 py-3 absolute bottom-10 rounded-full left-1/2 -translate-x-1/2 text-white focus:outline-none" 
+                    className="bg-gray-600 px-6 py-3 absolute bottom-24 md:bottom-10 rounded-full left-1/2 -translate-x-1/2 text-white focus:outline-none" 
                     type={'text'} 
                     placeholder="Enter Answer or Message!"
                     onKeyUp={(e)=>handleChat(e)}
@@ -357,7 +329,7 @@ export default function Canvasboard(){
                     {chatMessages && chatMessages.map(message=>{return message})}
                 </div>
                 <div className="w-fill h-1/6 relative">
-                    <div className="md:hidden absolute flex bottom-10 left-1/2 -translate-x-1/2 w-full gap-4 justify-center items-center">
+                    <div className="md:hidden absolute flex bottom-24 md:bottom-10 left-1/2 -translate-x-1/2 w-full gap-4 justify-center items-center">
                         <input 
                             className="bg-gray-600 px-6 py-3  rounded-full  text-white focus:outline-none" 
                             type={'text'} 
@@ -382,7 +354,7 @@ export default function Canvasboard(){
                         {currentRound && <span>Round:{currentRound}</span>}
                     </div>
                     <button 
-                    className="md:hidden absolute bottom-10 h-14 w-14 bg-red-500 rounded-full left-1/2 -translate-x-1/2"
+                    className="md:hidden absolute bottom-24 md:bottom-10 h-14 w-14 bg-red-500 rounded-full left-1/2 -translate-x-1/2"
                     onClick={()=>{handleInfoDrawer()}}
                     >
                         <FontAwesomeIcon className="text-white text-3xl" icon ={faXmark}/>

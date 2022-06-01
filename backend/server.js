@@ -10,7 +10,7 @@ app.use(express.static('./build'))
 
 const io = new Server(server,{
   cors:{
-    origin:`http://localhost:3000`
+    origin:`http://192.168.2.177:3000`
   }
 });
 
@@ -26,7 +26,7 @@ getThreeWords(all_words);
 app.use(cors());
 let lobbies = {}; //this will store every lobby that is active.
 io.on('connection', (socket)=>{
-    
+    let total_allowed_time = 100 * 1000;
 /**
  * @description Listeners for creating and joining a room.
  */
@@ -44,11 +44,16 @@ io.on('connection', (socket)=>{
         users: [set_leader],
         sockets: [socket.id],
         currentUserTurn : 0,
+        currentUserPos: null,
         currentRound: roundCount,
+        currentUserHealth : 0,
+        total_time_drawn: 0,
         currentTimer: 60,
         currentLobbyState: false,
         currentWord: null,
+        currentDrawingBoard:[],
         currentAcceptedUsers: [],
+        isDrawing : true,
         extra_words: wordList,
       }
    
@@ -148,11 +153,49 @@ io.on('connection', (socket)=>{
     })
 
 //#Handle Drawing
-    socket.on('position',({x,y,x2,y2}, {id}, color)=>{
-   
+    socket.on('position',(x,y, {id})=>{
       id = id.slice(1);
-      io.to(id).emit('draw', {x,y,x2,y2}, color)
+      let length = lobbies[id].currentDrawingBoard.length
+      lobbies[id].currentUserPos = {'x': x, 'y': y};
+      if(lobbies[id].isDrawing == true){
+        lobbies[id].currentDrawingBoard.push({'x':x, 'y':y});
+        lobbies[id].isDrawing = false;
+        length = lobbies[id].currentDrawingBoard.length
+      }
+      if(length === 0 ){
+        lobbies[id].currentDrawingBoard.push({'x':x , 'y': y})
+      }
+      else {
+      if((lobbies[id].currentDrawingBoard[ length-1].x != x || lobbies[id].currentDrawingBoard[length-1].y != y) && lobbies[id].currentUserHealth != 1){
+        //draw
+        lobbies[id].currentDrawingBoard.push({'x':x , 'y': y})
+        io.to(id).emit('draw', x,y , lobbies[id].currentDrawingBoard[ length-1].x, lobbies[id].currentDrawingBoard[length-1].y );
+      }
       
+    }
+    
+      
+    })
+
+    socket.on('time_drawing', (x,y,{id})=>{
+      id = id.slice(1)
+      let length = lobbies[id].currentDrawingBoard.length
+      if(length != 0 && (lobbies[id].currentDrawingBoard[length-1].x != lobbies[id].currentUserPos.x || lobbies[id].currentDrawingBoard[length-1].y != lobbies[id].currentUserPos.x)){
+        
+        lobbies[id].total_time_drawn++;
+        lobbies[id].currentUserHealth = (100 * (lobbies[id].total_time_drawn/ total_allowed_time));
+        io.to(id).emit('new_health', lobbies[id].currentUserHealth);
+      }
+      else{
+    
+        lobbies[id].currentUserPos.x = x; 
+        lobbies[id].currentUserPos.y = y;
+        lobbies[id].currentDrawingBoard.push({'x':lobbies[id].currentUserPos.x , 'y': lobbies[id].currentUserPos.y})
+      }
+    })
+    socket.on('release', ({id})=>{
+      id = id.slice(1);
+      lobbies[id].isDrawing = true;
     })
 //#Handling Chat message inside the lobby
   socket.on('send_chat', (username, message, {id})=>{
@@ -170,17 +213,14 @@ io.on('connection', (socket)=>{
   })
   socket.on('request_clear_board', ({id})=>{
     id = id.slice(1);
-    io.to(id).emit('clear_board', 100);
+    lobbies[id].currentDrawingBoard = [];
+    lobbies[id].currentUserHealth = 0;
+    lobbies[id].total_time_drawn = 0;
+    io.to(id).emit('clear_board', lobbies[id].currentUserHealth);
     
   })
 
-  socket.on('send_health_amount', (total_health, total_time_drawn, {id})=>{
-      id = id.slice(1);
-      let total_allowed_time = .5 * 500
-      total_time_drawn++;
-      total_health = total_time_drawn/total_allowed_time;
-      io.to(id).emit('new_health_amount', total_health, total_time_drawn)
-  })
+
 
   socket.on("disconnect", ()=>{
     console.log('user has disconnected')
@@ -282,7 +322,7 @@ function after_round_handling(id){
 let max_amount = 1500;
 lobbies[id].currentAcceptedUsers.forEach((user) => {
   let difference = 1 - ((user.time_completed / 60));
-  let points = Math.floor(1500 - (Math.floor(1500 * difference)))
+  let points = Math.floor(1500 - (Math.floor(1500 * difference)));
   lobbies[id]['users'][user.user].points += points;
   io.to(id).emit('update_points', lobbies[id]['users']);
   lobbies[id].currentAcceptedUsers = [];

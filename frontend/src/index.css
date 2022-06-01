@@ -11,3 +11,8 @@ html{
 ::-webkit-scrollbar{
   width:0px;
 }
+
+body{
+  position: fixed;
+  touch-action: none;
+}

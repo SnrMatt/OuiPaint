@@ -130,7 +130,7 @@ export default function Landing(){
                 {/**-----------------------Create Game UI----------------------- */}
               <div className={`${popup} w-screen h-screen bg-fainted absolute top-0 flex justify-center items-center transition-all duration-300`}>
                   <div 
-                  className={` md:w-2/6 w-5/6 h-5/6 bg-gray-300 rounded-md flex flex-col md:flex-row` }>
+                  className={` md:w-2/6 w-5/6 h-4/6 bg-gray-300 rounded-md flex flex-col md:flex-row` }>
                       <div className="w-full h-full flex flex-col justify-evenly items-center">
                         {/**-----------------------PopUp UI Inputs----------------------- */}
                         <div className="flex flex-col text-center">
@@ -168,7 +168,7 @@ export default function Landing(){
               </div>
               {/**-----------------------Join Game UI----------------------- */}
               <div className={` ${popup2} transition-all duration-300 h-screen w-screen bg-fainted absolute top-0 flex justify-center items-center`}>
-                <div className=" md:w-2/6 h-5/6 w-5/6 bg-gray-300 rounded-md flex justify-evenly items-center flex-col" >
+                <div className=" md:w-2/6 h-4/6 w-5/6 bg-gray-300 rounded-md flex justify-evenly items-center flex-col" >
                
                 <div className="flex flex-col text-center">
                   Username
@@ -186,7 +186,7 @@ export default function Landing(){
                 </div>
                 </div>
               </div>
-              <div onClick={()=>{handleAboutDisplay()}} className="absolute bottom-10 right-10 text-4xl text-white"><FontAwesomeIcon icon ={faInfoCircle}/></div>
+              <div onClick={()=>{handleAboutDisplay()}} className="absolute bottom-24 md:bottom-10 hover:cursor-pointer right-10 text-4xl text-white"><FontAwesomeIcon icon ={faInfoCircle}/></div>
                {/**-----------------------App Information----------------------- */}
                <div className={`${aboutIsOpen ? '' : 'translate-x-full'} h-screen w-screen md:w-1/4 md:right-0 bg-white absolute top-0 flex flex-col justify-evenly items-center transition-all duration-300`}>
                    <span className="text-xl text-gray-500">Made by <span className="font-bold text-green-600">Mathew Salazar</span></span>
