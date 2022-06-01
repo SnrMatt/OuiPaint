@@ -9,7 +9,8 @@ module.exports = {
 
       },
       maxWidth:{
-        '2/5' : '40%'
+        '2/5' : '40%',
+        '1/2': '50%'
    
       },
       maxHeight:{

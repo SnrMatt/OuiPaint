@@ -1,19 +1,20 @@
 import { useContext, useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { SocketContext } from "../Utils/Socketprovider";
 import UserProfile from "../Components/UserProfile";
 import SelfMessage from "../Components/Messages/self_message";
 import OthersMessage from "../Components/Messages/others_message";
-import { faChessKing, faTrash, faComment, faUser, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faChessKing, faTrash, faComment, faUser, faXmark, faCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 export default function Canvasboard(){
+    const navigate = useNavigate();
     const canvasRef = useRef()
     const healthBarRef = useRef();
     const timerRef = useRef();
     const roomID = useParams();
     const socket = useContext(SocketContext);
     
-    let total_allowed_time = .5 * 1000
+    let total_allowed_time = .5 * 500
     let color = ['black', 'red', 'green', 'blue', 'yellow'];
     const [lobby, setLobby] = useState(null);
     const [user, setUser] = useState();
@@ -21,6 +22,7 @@ export default function Canvasboard(){
     const [startGame, setGameState] = useState();
     var drawColor = 'black'
     const [displayChoice, setDisplay] = useState(false);
+    const [displayCorrect, setCorrectDisplay] = useState(false);
     const [displayGameOver, setGameOverDisplay] = useState(false);
     const [currentChoices, setChoices] = useState(null);
     const [currentRound, setRoundCount] = useState(0);
@@ -165,6 +167,12 @@ export default function Canvasboard(){
                     setDisplay(true);
                     setChoices(choices)
         })
+        socket.on('correct_choice', ()=>{
+                setCorrectDisplay(true);
+                setTimeout(()=>{
+                    setCorrectDisplay(false);
+                },1000)
+        })
    
         socket.on('current_time', (time_left)=>{
             setTime(time_left);
@@ -235,7 +243,7 @@ export default function Canvasboard(){
                 timerCtx.lineCap = 'round';
                 timerCtx.stroke();
                 timerCtx.beginPath();
-                timerCtx.arc(timer.width/2, timer.height /2, timer.width / 2- 10, 0,  (2 * Math.PI) * ((current_time/10)));
+                timerCtx.arc(timer.width/2, timer.height /2, timer.width / 2- 10, 0,  (2 * Math.PI) * ((current_time/60)));
                 timerCtx.lineWidth = 15;
                 timerCtx.strokeStyle = '#5CD676';
                 timerCtx.lineCap = 'round';
@@ -317,7 +325,7 @@ export default function Canvasboard(){
                 {/**-----------------------Health Bar-----------------------*/}
                 <canvas className='rounded-full absolute top-20 left-1/2 -translate-x-1/2' height= {20} width={300}  ref={healthBarRef}></canvas>
                 {/**-----------------------Timer-----------------------*/}
-                <canvas className="absolute top-32 right-10" height = {50} width={50} ref={timerRef}></canvas>
+                <canvas className="absolute top-36 right-5 md:right-1/3 md:top-20" height = {70} width={70} ref={timerRef}></canvas>
                 {currentWord && <div className="absolute top-28 left-1/2 -translate-x-1/2">{currentWord}</div>}
 
 
@@ -417,12 +425,47 @@ export default function Canvasboard(){
             }
                  {/**-----------------------Game Over Display----------------------*/}
             {displayGameOver === true &&
-            <div className="h-screen w-screen bg-fainted flex justify-center items-center absolute top-0">
-                <div className="h-4/6 w-2/3 bg-white rounded-md md:w-2/6 flex flex-col justify-center items-center">
-                        {finalScoreboard.map((user,index)=>{return <div style = {{backgroundColor: user.background}}>{index + 1}. {user.name}{user.points}</div>})}
+            <div className="h-screen w-screen bg-fainted flex flex-col justify-evenly items-center absolute top-0">
+                <div className="h-auto w-2/3 bg-white text-white rounded-md md:w-2/6 flex flex-col justify-center items-center p-2 md:p-8">
+                    <span className="text-center  text-gray-500 text-3xl pb-5  w-full ">Final Scores</span>
+                    <div className="flex flex-col w-full">
+                        <div className="w-full flex py-5 bg-fainted rounded-t-md">
+                            <span className="w-1/6 text-center">Pos.</span>
+                            <span className="w-3/6 text-center">Username</span>
+                            <span className="w-2/6 text-center">Points</span>
+                        </div>
+                        {finalScoreboard.map((user,index)=>{
+                            console.log(index +1 ,finalScoreboard.length);
+                            if(index+1 === finalScoreboard.length){
+                                return <div  className='w-full h-14 flex text-white rounded-b-md bg-gradient-to-r from-purple-700 to-pink-500 '>
+                                <span className="w-1/6 text-center  flex justify-center items-center">{index + 1}.</span> 
+                                <span className="w-3/6 text-center flex justify-center items-center "><span className="overflow-hidden whitespace-nowrap text-ellipsis">{user.name}</span></span>
+                                <span className="w-2/6 text-center flex justify-center items-center">{user.points}</span>
+                                </div>
+                                
+                            }
+                            else{ 
+                                return <div  className='w-full h-14 flex text-white bg-gradient-to-r from-purple-700 to-pink-500  '>
+                                <span className="w-1/6 text-center  flex justify-center items-center">{index + 1}.</span> 
+                                <span className="w-3/6 text-center flex justify-center items-center "><span className="overflow-hidden whitespace-nowrap text-ellipsis">{user.name}</span></span>
+                                <span className="w-2/6 text-center flex justify-center items-center">{user.points}</span>
+                                </div>
+                                }
+                           
+                            
+                            })}
+                    </div>
                 </div>
+                <div 
+                onClick={()=>{ socket.emit('leave_lobby', roomID); navigate('/');}}
+                className="text-white bg-red-500 text-2xl px-4 py-2 rounded-md hover:cursor-pointer">
+                    Leave
+                </div>
+
+                
             </div>
             }
+           <div className={`${displayCorrect? 'scale-1': 'scale-0'} absolute top-1/2 -translate-x-1/2 -translate-y-1/2 left-1/2 text-4xl bg-green-500 w-24 h-24  text-white flex justify-center items-center  rounded-full transition-all duration-300`}> <FontAwesomeIcon icon ={faCheck}/></div>
         </>
     );
 }

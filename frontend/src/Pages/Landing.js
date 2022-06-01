@@ -2,30 +2,40 @@ import { useContext, useEffect, useState,useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../Components/Button";
 import { SocketContext } from "../Utils/Socketprovider";
-import { faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons";
+import { faChevronLeft, faChevronRight,  faGlobeAmericas,faXmark, faInfoCircle } from "@fortawesome/free-solid-svg-icons";
+import { faTwitter, faGithub} from '@fortawesome/free-brands-svg-icons'
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 export default function Landing(){
   let navigate = useNavigate();
   let socket = useContext(SocketContext);
 
   const [username, setUsername] = useState('');
-  const [roomID, setRoomID] = useState('');
+  const [emptyUser, setNameStatus] = useState(false);
+  const [roomID, setRoomID] = useState(null);
   const [popup, setStatus] = useState('opacity-0 -z-10')
   const [popup2, setStatus2] = useState('opacity-0 -z-10')
   const [currentRoundCount, setRoundCount] = useState(1);
   const [wordList, setList] = useState(' ');
   const vidRef = useRef();
+  const [aboutIsOpen, setAboutState] = useState(false);
   
   //Request socket server to generate room
-  // const RequestRoom = ()=>{
-  //     socket.emit('request_room', username);
-  // }
+  const RequestRoom = ()=>{
+    if(username  === '' || null){
+      setNameStatus(true);
+    }
+    else socket.emit('request_room', username, currentRoundCount, wordList);
+  }
 
   //Display Options
 
   //Request Validtion of Room ID from socket server
   const joinRoom=()=>{
-    socket.emit('validate_room', {id:roomID}, username);
+    if(username  === '' || null){
+      setNameStatus(true);
+    }
+    
+    else socket.emit('validate_room', {id:roomID}, username);
  }
 
   //Simply handles UI pop up for "join room"
@@ -59,10 +69,18 @@ export default function Landing(){
       }
       else { setRoundCount(currentRoundCount + 2)} 
     }
-      
-      
-      
     }
+  }
+  const handleAboutDisplay = ()=>{
+    if(aboutIsOpen === true){
+      setAboutState(false);
+    }
+    else setAboutState(true);
+  }
+  
+  const openUrl= (url)=>{
+
+    window.open(url, '_blank')
   }
 
   useEffect(()=>{
@@ -84,7 +102,7 @@ export default function Landing(){
             <div className=" ">
               <video className=" fixed object-cover  top-0 -z-50 min-h-screen min-w-full" ref={vidRef} src='background.mp4' loop autoPlay muted playsInline/>
             </div>
-            <div className="h-screen w-screen  bg-transparent flex flex-col  justify-evenly items-center">
+            <div className="h-screen w-screen  bg-transparent flex flex-col  justify-evenly items-center overflow-hidden relative">
               {/**-----------------------OuiPaint----------------------- */}
               <div className="text-7xl md:text-8xl font-bold  text-white">
               OuiPaint
@@ -119,7 +137,7 @@ export default function Landing(){
                           Username
                         <input 
                             onKeyUp={(e)=>{setUsername(e.target.value)}}
-                            className="p-2  rounded-full text-center focus:border-purple-500 focus:border-2 focus:shadow-md focus:shadow-purple-400 focus:outline-none transition-all duration-300 " type='text' placeholder="Enter Username"/>
+                            className={`${emptyUser === true? ' border-4 border-red-500': ''} p-2  rounded-full text-center focus:border-purple-500 focus:border-2 focus:shadow-md focus:shadow-purple-400 focus:outline-none transition-all duration-300`} type='text' placeholder="Enter Username"/>
                         </div>
                              <textarea 
                               onKeyUp={(e)=>{setList((e.target.value).split(','))}}
@@ -141,7 +159,7 @@ export default function Landing(){
                               </div>
                               {/**-----------------------PopUp UI Controls----------------------- */}
                               <div className="flex justify-evenly w-full">
-                                <span onClick={()=>{socket.emit('request_room', username, currentRoundCount, wordList); console.log('click');}}><Button>Create</Button></span>
+                                <span onClick={()=>{RequestRoom()}}><Button>Create</Button></span>
                                 <span onClick={()=>{handlePopup()}}><Button>Cancel</Button></span>
                               </div>
                       </div>
@@ -156,7 +174,7 @@ export default function Landing(){
                   Username
                 <input 
                 onKeyUp={(e)=>{setUsername(e.target.value)}}
-                className="p-2 mb-10 rounded-full text-center focus:border-purple-500 focus:border-2 focus:shadow-md focus:shadow-purple-400 focus:outline-none transition-all duration-300 " type='text' placeholder="Enter Username"/>
+                className={`${emptyUser === true? ' border-4 border-red-500': ''} p-2  rounded-full mb-10 text-center focus:border-purple-500 focus:border-2 focus:shadow-md focus:shadow-purple-400 focus:outline-none transition-all duration-300`}  type='text' placeholder="Enter Username"/>
                   Room ID
                 <input 
                 onClick={(e)=>{setRoomID(e.target.value)}}
@@ -164,12 +182,21 @@ export default function Landing(){
                 </div>
                 <div className="flex w-full justify-evenly">
                   <span onClick={()=>{joinRoom()}}><Button>Join</Button></span>
-                  <div>Room ID</div>
                   <span onClick={()=>{handlePopup2()}}><Button>Cancel</Button></span>
                 </div>
                 </div>
-
               </div>
+              <div onClick={()=>{handleAboutDisplay()}} className="absolute bottom-10 right-10 text-4xl text-white"><FontAwesomeIcon icon ={faInfoCircle}/></div>
+               {/**-----------------------App Information----------------------- */}
+               <div className={`${aboutIsOpen ? '' : 'translate-x-full'} h-screen w-screen md:w-1/4 md:right-0 bg-white absolute top-0 flex flex-col justify-evenly items-center transition-all duration-300`}>
+                   <span className="text-xl text-gray-500">Made by <span className="font-bold text-green-600">Mathew Salazar</span></span>
+                   <div className="flex text-5xl w-full justify-evenly ">
+                      <div onClick={()=>{openUrl('https://twitter.com/SnrMattSalazar') }} className="hover:text-sky-500 hover:cursor-pointer"><FontAwesomeIcon icon ={faTwitter}/></div>
+                      <div onClick={()=>{openUrl('https://github.com/SnrMatt')}} className="hover:text-green-500  rounded-full hover:cursor-pointer"><FontAwesomeIcon icon ={faGithub}/></div>
+                      <div onClick={()=>{openUrl('https://msalazar.org')}} className="hover:text-blue-700 hover:cursor-pointer relative"><FontAwesomeIcon icon ={faGlobeAmericas}/></div>
+                   </div>
+                  <div onClick={()=>{handleAboutDisplay()}} className="hover:cursor-pointer w-14 h-14 rounded-full bg-red-500 flex justify-center items-center text-white text-3xl"><FontAwesomeIcon icon={faXmark}/></div>
+               </div>
             </div>    
         </>
     );

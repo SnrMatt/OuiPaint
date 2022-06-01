@@ -4,9 +4,8 @@ const cors = require('cors')
 const server = require('http').createServer(app);
 const { Server } = require('socket.io');
 const fs = require('fs');
-const { hostname } = require('os');
 
-
+app.use(express.static('./build'))
 
 
 const io = new Server(server,{
@@ -46,7 +45,7 @@ io.on('connection', (socket)=>{
         sockets: [socket.id],
         currentUserTurn : 0,
         currentRound: roundCount,
-        currentTimer: 80,
+        currentTimer: 60,
         currentLobbyState: false,
         currentWord: null,
         currentAcceptedUsers: [],
@@ -137,7 +136,7 @@ io.on('connection', (socket)=>{
             
           }
           else {
-          lobbies[id].currentTimer = (10 - ((Date.now()-start_time)/1000))
+          lobbies[id].currentTimer = (60 - ((Date.now()-start_time)/1000))
           io.to(id).emit('current_time', lobbies[id].currentTimer);
           }
         }
@@ -177,7 +176,7 @@ io.on('connection', (socket)=>{
 
   socket.on('send_health_amount', (total_health, total_time_drawn, {id})=>{
       id = id.slice(1);
-      let total_allowed_time = .5 * 1000
+      let total_allowed_time = .5 * 500
       total_time_drawn++;
       total_health = total_time_drawn/total_allowed_time;
       io.to(id).emit('new_health_amount', total_health, total_time_drawn)
@@ -200,11 +199,11 @@ io.on('connection', (socket)=>{
         delete lobbies[roomID];
         console.log(lobbies);
       }
+      socket.leave(roomID);
     }
  
   })
   socket.on('leave_lobby', ()=>{
-    console.log('test');
     if([...socket.rooms][1]){ 
       let roomID = [...socket.rooms][1];
       let indexOfUser = lobbies[roomID]['sockets'].indexOf(socket.id);
@@ -215,7 +214,9 @@ io.on('connection', (socket)=>{
         delete lobbies[roomID];
         console.log(lobbies);
       }
+      socket.leave(roomID);
     }
+    
   })
 
   })  
@@ -225,8 +226,8 @@ io.on('connection', (socket)=>{
 
 
 
-server.listen(4001, ()=>{
-    console.log('Server is on *4001')
+server.listen(80, ()=>{
+
 })
 
 function generateID() {
@@ -268,6 +269,7 @@ if(chat == lobbies[id].currentWord && lobbies[id].currentTimer != 0 && lobbies[i
       'user': lobbies[id]['sockets'].indexOf(socket.id), 
       'time_completed': lobbies[id].currentTimer
   })
+  socket.emit('correct_choice')
   console.log(lobbies[id].currentAcceptedUsers); 
 }
 }
@@ -279,7 +281,7 @@ function after_round_handling(id){
 //Calculate points for guessers
 let max_amount = 1500;
 lobbies[id].currentAcceptedUsers.forEach((user) => {
-  let difference = 1 - ((user.time_completed / 80));
+  let difference = 1 - ((user.time_completed / 60));
   let points = Math.floor(1500 - (Math.floor(1500 * difference)))
   lobbies[id]['users'][user.user].points += points;
   io.to(id).emit('update_points', lobbies[id]['users']);
@@ -302,7 +304,7 @@ if(next_user == 0){
 if(lobbies[id].currentRound != 0){
   console.log(next_user);
 lobbies[id].currentUserTurn = next_user;
-lobbies[id].currentTimer = 80;
+lobbies[id].currentTimer = 60;
 let choices = getThreeWords(all_words);
 
 io.to(lobbies[id]['sockets'][lobbies[id].currentUserTurn]).emit('create_user_choices', choices);
@@ -321,10 +323,10 @@ function bubble_sort(points){
 
  for(var i= 0; i < points.length; i++){
    for(var j = 0; j < points.length; j++){
-     if(points[i].points < points[j].points){
-       let temp = points[i].points;
-       points[i].points = points[j].points;
-       points[j].points= temp; 
+     if(points[i].points > points[j].points){
+        let temp = points[i];
+        points[i] = points[j];
+        points[j] = temp
      }
    }
  }
