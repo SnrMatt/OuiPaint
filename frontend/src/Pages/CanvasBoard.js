@@ -71,9 +71,6 @@ export default function Canvasboard(){
         x = e.touches[0].clientX;
         y = e.touches[0].clientY;
         socket.emit('position', x, y, roomID);
-        timerInterval = setInterval(()=>{
-            socket.emit('time_drawing', x, y,roomID)
-        },1)
        })
     canvas.addEventListener('touchend', ()=>{
         socket.emit('release', roomID);
@@ -86,15 +83,11 @@ export default function Canvasboard(){
 
      canvas.addEventListener('mousedown', ()=>{
         isMouseDown = true;
-        timerInterval = setInterval(()=>{
-            console.log('time');
-            socket.emit('time_drawing', x, y, roomID)
-        },1)
      })
      canvas.addEventListener('mouseup', ()=>{
         isMouseDown = false;
         socket.emit('release', roomID);
-        clearInterval(timerInterval);
+        
      })
 
       

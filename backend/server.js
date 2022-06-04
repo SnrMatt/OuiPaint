@@ -26,7 +26,8 @@ getThreeWords(all_words);
 app.use(cors());
 let lobbies = {}; //this will store every lobby that is active.
 io.on('connection', (socket)=>{
-    let total_allowed_time = 100 * 1000;
+  let allowed_health = 200;
+    
 /**
  * @description Listeners for creating and joining a room.
  */
@@ -44,10 +45,9 @@ io.on('connection', (socket)=>{
         users: [set_leader],
         sockets: [socket.id],
         currentUserTurn : 0,
-        currentUserPos: null,
+        currentUserPos: {'x': '', 'y':''},
         currentRound: roundCount,
-        currentUserHealth : 0,
-        total_time_drawn: 0,
+        total_drawn : 0,
         currentTimer: 60,
         currentLobbyState: false,
         currentWord: null,
@@ -151,48 +151,30 @@ io.on('connection', (socket)=>{
       }, 1)
     }
     })
-
+    
 //#Handle Drawing
     socket.on('position',(x,y, {id})=>{
+      //this runs second
       id = id.slice(1);
-      let length = lobbies[id].currentDrawingBoard.length
-      lobbies[id].currentUserPos = {'x': x, 'y': y};
+      let length = lobbies[id].currentDrawingBoard.length;
       if(lobbies[id].isDrawing == true){
         lobbies[id].currentDrawingBoard.push({'x':x, 'y':y});
         lobbies[id].isDrawing = false;
         length = lobbies[id].currentDrawingBoard.length
       }
-      if(length === 0 ){
-        lobbies[id].currentDrawingBoard.push({'x':x , 'y': y})
+      if(length == 0){ 
+        lobbies[id].currentDrawingBoard.push({'x': x, 'y': y});
       }
-      else {
-      if((lobbies[id].currentDrawingBoard[ length-1].x != x || lobbies[id].currentDrawingBoard[length-1].y != y) && lobbies[id].currentUserHealth != 1){
-        //draw
-        lobbies[id].currentDrawingBoard.push({'x':x , 'y': y})
-        io.to(id).emit('draw', x,y , lobbies[id].currentDrawingBoard[ length-1].x, lobbies[id].currentDrawingBoard[length-1].y );
+      if(length != 0 && (lobbies[id].currentDrawingBoard[length-1].x != x && lobbies[id].currentDrawingBoard[length-1].y != y) && (lobbies[id].total_drawn/allowed_health) != 1){
+        socket.emit('draw',x,y, lobbies[id].currentDrawingBoard[length-1].x,lobbies[id].currentDrawingBoard[length-1].y);
+        lobbies[id].currentDrawingBoard.push({'x':x, 'y':y});
+        lobbies[id].total_drawn++;
+        io.to(id).emit('new_health', (lobbies[id].total_drawn /allowed_health));
+
       }
-      
-    }
-    
-      
     })
 
-    socket.on('time_drawing', (x,y,{id})=>{
-      id = id.slice(1)
-      let length = lobbies[id].currentDrawingBoard.length
-      if(length != 0 && (lobbies[id].currentDrawingBoard[length-1].x != lobbies[id].currentUserPos.x || lobbies[id].currentDrawingBoard[length-1].y != lobbies[id].currentUserPos.x)){
-        
-        lobbies[id].total_time_drawn++;
-        lobbies[id].currentUserHealth = (100 * (lobbies[id].total_time_drawn/ total_allowed_time));
-        io.to(id).emit('new_health', lobbies[id].currentUserHealth);
-      }
-      else{
-    
-        lobbies[id].currentUserPos.x = x; 
-        lobbies[id].currentUserPos.y = y;
-        lobbies[id].currentDrawingBoard.push({'x':lobbies[id].currentUserPos.x , 'y': lobbies[id].currentUserPos.y})
-      }
-    })
+
     socket.on('release', ({id})=>{
       id = id.slice(1);
       lobbies[id].isDrawing = true;
@@ -214,9 +196,8 @@ io.on('connection', (socket)=>{
   socket.on('request_clear_board', ({id})=>{
     id = id.slice(1);
     lobbies[id].currentDrawingBoard = [];
-    lobbies[id].currentUserHealth = 0;
-    lobbies[id].total_time_drawn = 0;
-    io.to(id).emit('clear_board', lobbies[id].currentUserHealth);
+    lobbies[id].total_drawn = 0
+    io.to(id).emit('clear_board', (lobbies[id].total_drawn /allowed_health));
     
   })
 
