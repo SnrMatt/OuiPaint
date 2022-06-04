@@ -196,7 +196,7 @@ export default function Landing(){
                       <div onClick={()=>{openUrl('https://msalazar.org')}} className="hover:text-blue-700 hover:cursor-pointer relative"><FontAwesomeIcon icon ={faGlobeAmericas}/></div>
                    </div>
                   <div onClick={()=>{handleAboutDisplay()}} className="hover:cursor-pointer w-14 h-14 rounded-full bg-red-500 flex justify-center items-center text-white text-3xl"><FontAwesomeIcon icon={faXmark}/></div>
-                  <div className="absolute bottom-10 text-gray-400">Tip: The faster you draw the more ink you get ;P</div>
+                  <div className="absolute bottom-24 text-gray-400">Tip: The faster you draw the more ink you get ;P</div>
                </div>
             </div>    
         </>
