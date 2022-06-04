@@ -122,6 +122,11 @@ io.on('connection', (socket)=>{
     //#Handle gameplay start session
     socket.on('user_response', (word)=>{
       let id = [...socket.rooms][1];
+      for(var i = 0; i < lobbies[id].sockets.length; i++){
+        if(i != lobbies[id].currentUserTurn){
+          io.to(lobbies[id].sockets[i]).emit('wait_for_user');
+        }
+      }
       if(lobbies[id].currentRound != 0){
       console.log('user response', lobbies[id].currentTimer);
       lobbies[id].currentWord  = word;
@@ -165,7 +170,7 @@ io.on('connection', (socket)=>{
       if(length == 0){ 
         lobbies[id].currentDrawingBoard.push({'x': x, 'y': y});
       }
-      if(length != 0 && (lobbies[id].currentDrawingBoard[length-1].x != x && lobbies[id].currentDrawingBoard[length-1].y != y) && (lobbies[id].total_drawn/allowed_health) != 1){
+      if(length != 0 && (lobbies[id].currentDrawingBoard[length-1].x != x || lobbies[id].currentDrawingBoard[length-1].y != y) && (lobbies[id].total_drawn/allowed_health) != 1){
         socket.emit('draw',x,y, lobbies[id].currentDrawingBoard[length-1].x,lobbies[id].currentDrawingBoard[length-1].y);
         lobbies[id].currentDrawingBoard.push({'x':x, 'y':y});
         lobbies[id].total_drawn++;
@@ -280,6 +285,12 @@ function getThreeWords(data){
 function StartRoundGameplay(socket,id){ 
   let choices = getThreeWords(all_words);  
   io.to(lobbies[id].sockets[lobbies[id].currentUserTurn]).emit('create_user_choices', choices);
+  for(var i = 0; i < lobbies[id].sockets.length; i++){
+    if(i != lobbies[id].currentUserTurn){
+      io.to(lobbies[id].sockets[i]).emit('wait_for_user');
+    }
+  }
+  io.to(lobbies[id].sockets[lobbies[id].currentUserTurn]).emit('enable_drawing');
   console.log('created choices');
 }
 function check_if_matches(chat,id,socket){
@@ -301,6 +312,7 @@ function after_round_handling(id){
 
 //Calculate points for guessers
 let max_amount = 1500;
+io.to(lobbies[id].sockets[lobbies[id].currentUserTurn]).emit('disable_drawing');
 lobbies[id].currentAcceptedUsers.forEach((user) => {
   let difference = 1 - ((user.time_completed / 60));
   let points = Math.floor(1500 - (Math.floor(1500 * difference)));
@@ -329,6 +341,12 @@ lobbies[id].currentTimer = 60;
 let choices = getThreeWords(all_words);
 
 io.to(lobbies[id]['sockets'][lobbies[id].currentUserTurn]).emit('create_user_choices', choices);
+for(var i = 0; i < lobbies[id].sockets.length; i++){
+  if(i != lobbies[id].currentUserTurn){
+    io.to(lobbies[id].sockets[i]).emit('wait_for_user');
+  }
+}
+io.to(lobbies[id].sockets[lobbies[id].currentUserTurn]).emit('enable_drawing');
 }
 else {
   //Organize the lobby 

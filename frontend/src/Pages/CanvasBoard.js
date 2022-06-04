@@ -16,10 +16,12 @@ export default function Canvasboard(){
     let timerInterval;
     let color = ['black', 'red', 'green', 'blue', 'yellow'];
     const [lobby, setLobby] = useState(null);
+
     const [user, setUser] = useState();
     const [chatMessages, addMessages] = useState([]);
     const [startGame, setGameState] = useState();
     const [displayChoice, setDisplay] = useState(false);
+    const [displayWait, setWaitDisplay] = useState(false);
     const [displayCorrect, setCorrectDisplay] = useState(false);
     const [displayGameOver, setGameOverDisplay] = useState(false);
     const [currentChoices, setChoices] = useState(null);
@@ -31,7 +33,7 @@ export default function Canvasboard(){
     const [chatIsOpen, setChatStatus] = useState(false);
     const [infoIsOpen, setInfoStatus] = useState(false);
     useEffect(()=>{
-
+        let drawing_status = true;
         //Drawing Variables
         let x;
         let y;
@@ -60,35 +62,54 @@ export default function Canvasboard(){
         ctx.fillRect(0,0,canvas.width, canvas.height);
 
     })
-     canvas.addEventListener('mousemove', (e)=>{
-      x = e.offsetX;
-      y = e.offsetY;
-      if(isMouseDown === true){
+
+    let MouseMove;
+    let TouchMove;
+    let TouchEnd;
+    let MouseLeave;
+    let MouseDown;
+    let MouseUp;
+    socket.on('enable_drawing', ()=>{
+        
+     canvas.addEventListener('mousemove', MouseMove= (e)=>{
+        x = e.offsetX;
+        y = e.offsetY;
+        if(isMouseDown === true){
+            socket.emit('position', x, y, roomID);
+        }
+       } )
+       canvas.addEventListener('touchmove', TouchMove=(e)=>{
+          x = e.touches[0].clientX;
+          y = e.touches[0].clientY;
           socket.emit('position', x, y, roomID);
-      }
-     })
-     canvas.addEventListener('touchmove', (e)=>{
-        x = e.touches[0].clientX;
-        y = e.touches[0].clientY;
-        socket.emit('position', x, y, roomID);
+         },{ })
+      canvas.addEventListener('touchend', TouchEnd=()=>{
+          socket.emit('release', roomID);
+          clearInterval(timerInterval);
+      })
+  
+       canvas.addEventListener('mouseleave', MouseLeave=()=>{
+          isMouseDown = false;
        })
-    canvas.addEventListener('touchend', ()=>{
-        socket.emit('release', roomID);
-        clearInterval(timerInterval);
+  
+       canvas.addEventListener('mousedown', MouseDown=()=>{
+          isMouseDown = true;
+       })
+       canvas.addEventListener('mouseup', MouseUp=()=>{
+          isMouseDown = false;
+          socket.emit('release', roomID);
+          
+       })
     })
 
-     canvas.addEventListener('mouseleave', ()=>{
-        isMouseDown = false;
-     })
-
-     canvas.addEventListener('mousedown', ()=>{
-        isMouseDown = true;
-     })
-     canvas.addEventListener('mouseup', ()=>{
-        isMouseDown = false;
-        socket.emit('release', roomID);
-        
-     })
+    socket.on('disable_drawing',()=>{
+        canvas.removeEventListener('mousemove', MouseMove);
+        canvas.removeEventListener('touchmove', TouchMove);
+        canvas.removeEventListener('touchend', TouchEnd);
+        canvas.removeEventListener('mouseleave', MouseLeave);
+        canvas.removeEventListener('mousedown', MouseDown);
+        canvas.removeEventListener('mouseup', MouseUp);
+    })
 
       
     
@@ -115,6 +136,15 @@ export default function Canvasboard(){
         socket.on('get_round_count', ()=>{
             setRoundCount(currentRound + 1);
         })
+
+        socket.on('wait_for_user', ()=>{
+            console.log('emit');
+            if(displayWait == false){
+                setWaitDisplay(true);
+            }
+            else setWaitDisplay(false);
+        })
+
          /**
          * Round Listeners
          */
@@ -138,6 +168,7 @@ export default function Canvasboard(){
             console.log('display');
                     setDisplay(true);
                     setChoices(choices)
+
         })
         socket.on('correct_choice', ()=>{
                 setCorrectDisplay(true);
@@ -385,6 +416,13 @@ export default function Canvasboard(){
                    {currentChoices.map(choice=>{return <div onClick={()=>{handleWordChoice(choice)}} className="hover:cursor-pointer bg-white rounded-full px-4 py-2 text-lg active:translate-y-1 transition-all duration-200">{choice}</div>})}   
                   </div>
                 
+
+                </div>
+            }
+            {/**-----------------------Wait for user to choose----------------------*/}
+            {displayWait === true &&
+                <div className="h-screen w-screen bg-fainted absolute top-0 flex justify-center items-center">
+                    <span className="text-white text-4xl text-center">Waiting for a choice to be made.</span>
 
                 </div>
             }
