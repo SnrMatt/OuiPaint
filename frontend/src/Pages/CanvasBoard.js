@@ -392,6 +392,7 @@ export default function Canvasboard(){
                 <div className="h-3/5 w-5/6 bg-white rounded-md flex  flex-col justify-evenly items-center md:w-2/6">
                     {lobby && listOnlineUsers()}
                     {lobby && <span className="text-xl">{lobby.length}/6</span>}
+                    <span className="flex flex-col gap-3"><span className="border-b-2 border-gray-700">Room ID</span><span className="text-center">{(roomID.id).slice(1)}</span></span>
                     <span className="text-center text-gray-400 w-2/3 ">Start your game whenever everyone is ready.</span>
                 </div>
                 <div 
@@ -404,6 +405,7 @@ export default function Canvasboard(){
                  <div className="h-3/5 w-5/6 bg-white rounded-md flex flex-col justify-evenly items-center  md:w-2/6">
                     {lobby && listOnlineUsers()}
                     {lobby && <span>{lobby.length}/6</span>}
+                    <span className="flex flex-col gap-3"><span className="border-b-2 border-gray-700">Room ID</span><span className="text-center">{(roomID.id).slice(1)}</span></span>
                     <span className="text-center text-gray-400 w-2/3">Waiting for the leader to start the game</span>
                 </div>
                 

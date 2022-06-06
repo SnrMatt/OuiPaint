@@ -14,6 +14,9 @@ const io = new Server(server,{
   }
 });
 
+app.get('/*', (req,res)=>{
+  res.sendFile(path.join(__dirname, '/build', '/index.html'))
+})
 
 const all_words = getData();
 getThreeWords(all_words);
