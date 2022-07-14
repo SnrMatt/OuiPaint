@@ -125,7 +125,7 @@ io.on("connection", (socket) => {
       hidden_word = hidden_word.map((letters) => {
         return letters.length;
       });
-      console.log(hidden_word);
+
       io.to(id).emit("get_word", hidden_word);
       //Start Timer
       let start_time = Date.now();
@@ -382,6 +382,6 @@ function bubble_sort(points) {
       }
     }
   }
-  console.log(points);
+
   return points;
 }
