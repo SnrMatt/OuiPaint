@@ -12,7 +12,6 @@ import {
   faCheck,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSquareFontAwesomeStroke } from "@fortawesome/free-brands-svg-icons";
 export default function Canvasboard() {
   const navigate = useNavigate();
   const canvasRef = useRef();
