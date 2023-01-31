@@ -1,24 +1,23 @@
 import express from 'express';
+import {Server} from 'socket.io';
+import {User} from './Utils/User';
 import cors from 'cors';
-import { Server, Socket } from 'socket.io'
 const app = express();
 const server = require('http').createServer(app);
 
 
-
-
 const io = new Server(server, {
-    cors: {
-      origin: `http://localhost:3000`,
-    },
-  });
+    cors:{
+        origin:"http://localhost:3000"
+    }
+})
 
-io.on('connection', (socket:Socket)=>{
-    
+io.on('connection', (socket)=>{
+    var user = new User(socket.id, socket)
+    console.log(user.getId() + "has joined!");
 })
 
 
-server.listen(5000 , ()=>{ 
-    console.log('Server is on port 5000')
+server.listen(5000, ()=>{
+    console.log('Server is running!')
 })
-
