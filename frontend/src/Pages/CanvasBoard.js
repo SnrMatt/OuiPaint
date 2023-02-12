@@ -130,7 +130,7 @@ export default function Canvasboard() {
     /**
      * Socket Emitters and Listeners
      */
-    socket.emit("join_room", roomID);
+
     socket.emit("check_game_status", roomID);
     socket.on("response_start_game", (status) => {
       setGameState(status);
@@ -140,7 +140,8 @@ export default function Canvasboard() {
     });
 
     socket.on("get_user", (currentUser) => {
-      setUser(currentUser);
+      console.log(currentUser)
+      //setUser(currentUser);
     });
     socket.on("update_points", (lobby_info) => {
       setLobby(lobby_info);

@@ -15,6 +15,7 @@ export default function Landing() {
   let navigate = useNavigate();
   let socket = useContext(SocketContext);
 
+  const [join_error_message, set_message] = useState("");
   const [username, setUsername] = useState("");
   const [emptyUser, setNameStatus] = useState(false);
   const [roomID, setRoomID] = useState(null);
@@ -29,7 +30,7 @@ export default function Landing() {
   const RequestRoom = () => {
     if (username === "" || null) {
       setNameStatus(true);
-    } else socket.emit("request_room", username, currentRoundCount, wordList);
+    } else socket.emit("lobby:create", username, currentRoundCount, wordList);
   };
 
   //Display Options
@@ -38,7 +39,7 @@ export default function Landing() {
   const joinRoom = () => {
     if (username === "" || null) {
       setNameStatus(true);
-    } else socket.emit("validate_room", { id: roomID }, username);
+    } else socket.emit("lobby:join",  roomID , username);
   };
 
   //Simply handles UI pop up for "join room"
@@ -81,18 +82,19 @@ export default function Landing() {
   const openUrl = (url) => {
     window.open(url, "_blank");
   };
-
   useEffect(() => {
     vidRef.current.play();
     //Listens for response from socket after generating a room
-    socket.on("roomID", ({ id }) => {
+    socket.on("lobby:post-roomID", ( id ) => {
       navigate("/gameroom:" + id);
     });
     //Listens for response after validating Room ID.
-    socket.on("validation_response", (found, id) => {
-      if (found !== -1) {
-        navigate("/gameroom:" + id.id);
+    socket.on("lobby:verification-response", (found, id) => {
+      console.log(found,id)
+      if (found !== false) {
+        navigate("/gameroom:" + id);
       }
+      else set_message("The room ID does not exist.");
     });
   }, []);
   return (
@@ -219,7 +221,7 @@ export default function Landing() {
         <div
           className={` ${popup2} transition-all duration-300 h-screen w-screen bg-fainted absolute top-0 flex justify-center items-center`}
         >
-          <div className=" md:w-2/6 h-4/6 w-5/6 bg-gray-300 rounded-md flex justify-evenly items-center flex-col">
+          <div className="relative md:w-2/6 h-4/6 w-5/6 bg-gray-300 rounded-md flex justify-evenly items-center flex-col">
             <div className="flex flex-col text-center">
               Username
               <input
@@ -258,6 +260,7 @@ export default function Landing() {
                 <Button>Cancel</Button>
               </span>
             </div>
+            <span className="h-10 px-4 absolute bottom-2 text-red-700 flex items-center">{join_error_message}</span>
           </div>
         </div>
         <div

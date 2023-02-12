@@ -11,8 +11,8 @@ export default function Roomloader(){
     
    useEffect(()=>{
     setTimeout(()=>{
-        socket.emit('check_lobby_status', roomID);
-        socket.on('response_lobby_status', (status)=>{
+        socket.emit('lobby:get-status', roomID.id.slice(1));
+        socket.on('lobby:set-status', (status)=>{
             setlobbyStatus(status)
             console.log('render?');
         })
