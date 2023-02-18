@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { socket } from "../Utils/Socketprovider";
-import Canvasboard from "./CanvasBoard";
+import Gameboard from "./Gameboard";
 
 
 export default function Roomloader(){
@@ -22,7 +22,6 @@ export default function Roomloader(){
         return(
         <div className="h-screen w-screen flex justify-center items-center flex-col gap-10">
             <div className=" flex flex-col items-center text-white text-center gap-20">
-              
                 <div className="h-24 w-24  rounded-full animate-spin  border-4 border-t-black"></div>
             </div>
             <span className="flex flex-col absolute bottom-24 gap-5 text-gray-500">
@@ -38,7 +37,7 @@ export default function Roomloader(){
     else{
         return(
             <>
-                <Canvasboard/>
+                <Gameboard/>
             </>
         );
     }

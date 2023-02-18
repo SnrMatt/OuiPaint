@@ -1,9 +1,10 @@
 import express from 'express';
 import {Server} from 'socket.io';
-import {User} from './Classes/User';
-import { Lobby } from './Classes/Lobby';
+import {User} from './Objects/User';
+import { Lobby } from './Objects/Lobby';
 import cors from 'cors';
 const registerUserHandlers = require('./Utils/Listeners/User')
+const registerGameboardHandlers = require('./Utils/Listeners/Gameboard')
 const app = express();
 const server = require('http').createServer(app);
 
@@ -19,7 +20,7 @@ io.on('connection', (socket)=>{
     var user = new User(socket.id)
     
     registerUserHandlers(io,socket,user);
-    
+    registerGameboardHandlers(io,socket,user)
 })
 
 

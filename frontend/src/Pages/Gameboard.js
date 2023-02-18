@@ -17,7 +17,7 @@ export default function Canvasboard() {
   const canvasRef = useRef();
   const healthBarRef = useRef();
   const timerRef = useRef();
-  const roomID = useParams();
+  var roomID = useParams();
   const socket = useContext(SocketContext);
   let timerInterval;
   let color = ["black", "red", "green", "blue", "yellow"];
@@ -37,6 +37,7 @@ export default function Canvasboard() {
   /**-----------------------Mobile Drawers State----------------------- */
   const [chatIsOpen, setChatStatus] = useState(false);
   const [infoIsOpen, setInfoStatus] = useState(false);
+  roomID = roomID.id.slice(1);
   useEffect(() => {
     //Drawing Variables
     let x;
@@ -68,15 +69,13 @@ export default function Canvasboard() {
     let MouseLeave;
     let MouseDown;
     let MouseUp;
-    socket.on("enable_drawing", () => {
+    socket.on("gameplay:enable_drawing", () => {
       canvas.addEventListener(
         "mousemove",
         (MouseMove = (e) => {
           x = e.offsetX;
           y = e.offsetY;
-          if (isMouseDown === true) {
-            socket.emit("position", x, y, roomID);
-          }
+          socket.emit("gameplay:user-position", x, y, roomID);
         })
       );
       canvas.addEventListener(
@@ -107,18 +106,19 @@ export default function Canvasboard() {
         "mousedown",
         (MouseDown = () => {
           isMouseDown = true;
+          socket.emit('gameplay:user-drawing-status', true);
         })
       );
       canvas.addEventListener(
         "mouseup",
         (MouseUp = () => {
           isMouseDown = false;
-          socket.emit("release", roomID);
+          socket.emit('gameplay:user-drawing-status', false);
         })
       );
     });
 
-    socket.on("disable_drawing", () => {
+    socket.on("gameplay:disable_drawing", () => {
       canvas.removeEventListener("mousemove", MouseMove);
       canvas.removeEventListener("touchmove", TouchMove);
       canvas.removeEventListener("touchend", TouchEnd);
@@ -131,26 +131,28 @@ export default function Canvasboard() {
      * Socket Emitters and Listeners
      */
 
-    socket.emit("check_game_status", roomID);
-    socket.on("response_start_game", (status) => {
+    socket.emit("gameplay:get-user");
+    socket.emit("gameplay:get-game-status", roomID);
+    socket.on("gameplay:post-game-status", (status) => {
       setGameState(status);
     });
-    socket.on("new_user", (lobby_info) => {
+    socket.emit("gameplay:get-lobby-info", roomID);
+    socket.on("gameplay:post-lobby-info", (lobby_info) => {
       setLobby(lobby_info);
     });
 
-    socket.on("get_user", (currentUser) => {
-      console.log(currentUser)
-      //setUser(currentUser);
+    socket.on("gameplay:post-user", (currentUser) => {
+      setUser(currentUser);
     });
     socket.on("update_points", (lobby_info) => {
       setLobby(lobby_info);
+
     });
     socket.on("get_round_count", () => {
       setRoundCount(currentRound + 1);
     });
 
-    socket.on("wait_for_user", (status) => {
+    socket.on("gameplay:wait-for-user", (status) => {
       setWaitDisplay(status);
     });
 
@@ -173,7 +175,7 @@ export default function Canvasboard() {
         </div>
       );
     });
-    socket.on("create_user_choices", (choices) => {
+    socket.on("gameplay:post-list", (choices) => {
       console.log("display");
       setDisplay(true);
       setChoices(choices);
@@ -185,7 +187,7 @@ export default function Canvasboard() {
       }, 1000);
     });
 
-    socket.on("current_time", (time_left) => {
+    socket.on("gameplay:set-current-time", (time_left) => {
       requestAnimationFrame(() => {
         handleTimer(time_left);
       });
@@ -207,13 +209,12 @@ export default function Canvasboard() {
 
       // requestAnimationFrame(()=>{handleHealthBar(total_health)})
     });
-    socket.on("new_health", (total_health) => {
+    socket.on("lobby:set-health", (total_health) => {
       requestAnimationFrame(() => {
         handleHealthBar(total_health);
       });
     });
-    socket.on("draw", (x, y, x2, y2) => {
-      console.log("drawing");
+    socket.on("gameplay:draw", (x, y, x2, y2) => {
       ctx.beginPath();
       ctx.moveTo(x2, y2);
       ctx.lineTo(x, y);
@@ -306,8 +307,7 @@ export default function Canvasboard() {
     }
   };
   const handleWordChoice = (word) => {
-    console.log(word);
-    socket.emit("user_response", word);
+    socket.emit("gameplay:set-user-choice", roomID, word);
     setDisplay(false);
   };
   //#Chat Message Listeners
@@ -318,19 +318,21 @@ export default function Canvasboard() {
     ]);
   });
   const listOnlineUsers = () => {
+    const LOBBY_LENGTH = 6;
     let current_list = [];
-    for (var i = 0; i < 6; i++) {
-      if (i < lobby.length) {
-        current_list.push(lobby[i].username[0]);
-      } else {
-        current_list.push("?");
+    for(var i = 0; i < LOBBY_LENGTH; i++){
+      if(lobby.users[i] !== undefined){
+        current_list.push(lobby.users[i].username[0]);
+        continue;
       }
+      current_list.push("?")
     }
     return (
       <div className="grid grid-cols-3 grid-rows-2 gap-5">
         {current_list.map((user) => {
           return (
-            <div className="justify-self-center self-center w-14 flex justify-center items-center h-14 rounded-full bg-gray-300">
+            <div 
+            className="justify-self-center self-center w-14 flex justify-center items-center h-14 rounded-full bg-gray-300">
               {user}
             </div>
           );
@@ -461,11 +463,12 @@ export default function Canvasboard() {
         >
           <div className="h-4/6 w-full">
             {lobby &&
-              lobby.map((user) => {
+              lobby.users.map((user) => {
                 return (
-                  <div key={user.username.toString()} className="p-1">
+                  <div key={user.username} className="p-1">
                     {" "}
                     <UserProfile
+                      role = {user.role}
                       background={user.background}
                       points={user.points}
                     >
@@ -494,10 +497,10 @@ export default function Canvasboard() {
         <div className="w-screen h-screen bg-fainted absolute top-0 flex justify-evenly items-center flex-col">
           <div className="h-3/5 w-5/6 bg-white rounded-md flex  flex-col justify-evenly items-center md:w-2/6">
             {lobby && listOnlineUsers()}
-            {lobby && <span className="text-xl">{lobby.length}/6</span>}
+            {lobby && <span className="text-xl">{lobby.users.length}/6</span>}
             <span className="flex flex-col gap-3">
               <span className="border-b-2 border-gray-700">Room ID</span>
-              <span className="text-center">{roomID.id.slice(1)}</span>
+              <span className="text-center">{roomID}</span>
             </span>
             <span className="text-center text-gray-400 w-2/3 ">
               Start your game whenever everyone is ready.
@@ -505,7 +508,7 @@ export default function Canvasboard() {
           </div>
           <div
             onClick={() => {
-              socket.emit("start_game", roomID);
+              socket.emit("gameplay:request-start", roomID);
             }}
             className="bg-green-500 text-white text-xl w-auto px-3 py-2  rounded-full hover:cursor-pointer"
           >
@@ -518,10 +521,10 @@ export default function Canvasboard() {
         <div className="w-screen h-screen bg-fainted absolute top-0  flex-col justify-evenly items-center  flex">
           <div className="h-3/5 w-5/6 bg-white rounded-md flex flex-col justify-evenly items-center  md:w-2/6">
             {lobby && listOnlineUsers()}
-            {lobby && <span>{lobby.length}/6</span>}
+            {lobby && <span>{lobby.users.length}/6</span>}
             <span className="flex flex-col gap-3">
               <span className="border-b-2 border-gray-700">Room ID</span>
-              <span className="text-center">{roomID.id.slice(1)}</span>
+              <span className="text-center">{roomID}</span>
             </span>
             <span className="text-center text-gray-400 w-2/3">
               Waiting for the leader to start the game
@@ -539,6 +542,7 @@ export default function Canvasboard() {
             {currentChoices.map((choice) => {
               return (
                 <div
+                  key={choice.toString()}
                   onClick={() => {
                     handleWordChoice(choice);
                   }}
